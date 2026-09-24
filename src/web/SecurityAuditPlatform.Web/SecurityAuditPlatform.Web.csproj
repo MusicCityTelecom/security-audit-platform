@@ -4,7 +4,7 @@
     <AssemblyName>SecurityAuditPlatform.Web</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\\..\\core\\SecurityAuditPlatform.Core\\SecurityAuditPlatform.Core.csproj" />
-    <ProjectReference Include="..\\..\\core\\SecurityAuditPlatform.Infrastructure\\SecurityAuditPlatform.Infrastructure.csproj" />
+    <ProjectReference Include="../../core/SecurityAuditPlatform.Core/SecurityAuditPlatform.Core.csproj" />
+    <ProjectReference Include="../../core/SecurityAuditPlatform.Infrastructure/SecurityAuditPlatform.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
