@@ -1,0 +1,35 @@
+schema_version: 1
+id: official.recon.amass
+name: Amass
+version: 0.1.0
+category: Recon
+runtime: wsl
+entrypoint: amass
+capabilities:
+  - recon
+privileges:
+  - network
+requires:
+  tools:
+    - amass
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: amass
+  arguments:
+    - "enum"
+    - "-d"
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/owasp-amass/amass
+  ref: main
+evidence:
+  - stdout
+  - stderr
