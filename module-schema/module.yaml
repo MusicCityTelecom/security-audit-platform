@@ -1,0 +1,22 @@
+schema_version: 1
+id: example.module
+name: Example Module
+version: 0.1.0
+category: utility
+runtime: windows
+entrypoint: main.ps1
+capabilities: []
+privileges: []
+requires:
+  tools: []
+  hardware: []
+  runtimes: []
+network:
+  behavior: passive
+inputs: {}
+outputs: {}
+evidence: []
+license:
+  spdx: MIT
+source:
+  type: local
