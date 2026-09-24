@@ -15,7 +15,7 @@
 <button onclick="showPage('modules',this)">Modules</button>
 <button onclick="showPage('engagements',this)">Engagements</button>
 <button onclick="showPage('jobs',this)">Jobs</button>
-<button onclick="showPage('findings',this)">Findings</button>
+<button onclick="showPage('findings',this)">Findings</button><button onclick="showPage('audit',this)">Audit Log</button>
 <button onclick="showPage('settings',this)">Settings</button>
 </nav>
 
@@ -48,6 +48,9 @@
 <section class="card section"><div class="toolbar"><div><h2>Report</h2><div class="muted">Generate the current HTML assessment report.</div></div><button onclick="window.open('/api/reports/current.html','_blank')">Open report</button></div></section>
 </section>
 
+<section id="audit" class="page">
+<section class="card"><div class="toolbar"><div><h2>Audit log</h2><div class="muted">Operator actions affecting scope and execution are retained locally.</div></div><button onclick="refreshAudit()">Refresh</button></div><table class="table"><thead><tr><th>Time</th><th>Action</th><th>Target</th><th>Outcome</th><th>Details</th></tr></thead><tbody id="auditRows"></tbody></table></section>
+</section>
 <section id="settings" class="page">
 <section class="card">
 <h2>Settings</h2>
@@ -80,7 +83,7 @@
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(path,opt={}){const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opt});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json()}
-function showPage(id,button){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));button.classList.add('active');if(id==='settings')refreshSettings();if(id==='modules')refreshModules();if(id==='engagements')refreshEngagements();if(id==='findings')refreshFindings();if(id==='jobs')loadJobSelectors()}
+function showPage(id,button){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));button.classList.add('active');if(id==='settings')refreshSettings();if(id==='audit')refreshAudit();if(id==='modules')refreshModules();if(id==='engagements')refreshEngagements();if(id==='findings')refreshFindings();if(id==='jobs')loadJobSelectors()}
 async function refreshAll(){try{const [h,m,j,f]=await Promise.all([api('/api/health'),api('/api/modules'),api('/api/jobs'),api('/api/findings')]);$('status').textContent=h.status.toUpperCase();$('version').textContent='v'+h.version;$('modulesCount').textContent=m.length;$('jobsCount').textContent=(j.history||[]).length;$('findingsCount').textContent=f.length;$('jobRows').innerHTML=(j.history||[]).slice(0,20).map(x=>'<tr><td>'+esc(x.moduleId)+'</td><td>'+esc(x.target)+'</td><td>'+esc(x.state)+'</td><td>'+esc(new Date(x.createdAt).toLocaleString())+'</td></tr>').join('')||'<tr><td colspan="4">No jobs yet.</td></tr>'}catch(e){$('status').textContent='OFFLINE';$('status').className='metric bad'}}
 async function refreshModules(){try{const m=await api('/api/modules');$('moduleRows').innerHTML=m.map(x=>'<tr><td>'+esc(x.id)+'</td><td><span class="pill">'+esc(x.category)+'</span></td><td>'+esc(x.runtime)+'</td><td>'+esc(x.networkBehavior)+'</td><td class="'+(x.valid?'ok':'bad')+'">'+(x.valid?'VALID':'INVALID')+'</td></tr>').join('')||'<tr><td colspan="5">No modules found.</td></tr>';$('jobModule').innerHTML=m.filter(x=>x.valid).map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' ('+esc(x.id)+')</option>').join('')}catch(e){$('moduleRows').innerHTML='<tr><td colspan="5">'+esc(e)+'</td></tr>'}}
 async function refreshEngagements(){const e=await api('/api/engagements');$('engRows').innerHTML=e.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.id)+'</td><td>'+esc(JSON.stringify(x.targets))+'</td><td>'+esc(x.expiresAt||'never')+'</td></tr>').join('')||'<tr><td colspan="4">No engagements.</td></tr>';$('jobEngagement').innerHTML=e.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('')}
@@ -92,6 +95,7 @@ async function inspectRepo(){try{$('repoResult').textContent=JSON.stringify(awai
 async function importRepo(){try{$('repoResult').textContent=JSON.stringify(await api('/api/modules/import-github',{method:'POST',body:JSON.stringify({repositoryUrl:$('repoUrl').value,revision:$('repoRevision').value||null})}),null,2);refreshModules()}catch(e){$('repoResult').textContent=e.message}}
 async function refreshTools(){try{const t=await api('/api/tools');$('toolRows').innerHTML=t.map(x=>'<tr><td>'+esc(x.tool.name)+'</td><td>'+esc(x.tool.runtime)+'</td><td class="'+(x.available?'ok':'bad')+'">'+(x.available?'YES':'NO')+'</td><td>'+esc(x.resolvedPath||'')+'</td><td>'+esc(x.version||x.error||'')+'</td></tr>').join('')}catch(e){$('toolRows').innerHTML='<tr><td colspan="5">'+esc(e)+'</td></tr>'}}
 async function checkUpdates(){try{const x=await api('/api/updates/check');$('updateResult').innerHTML=x.available?'<span class="warn">Update available: '+esc(x.latestVersion)+' — '+esc(x.releaseUrl||'')+'</span>':'<span class="ok">No newer release reported.</span>'}catch(e){$('updateResult').textContent=e.message}}
+async function refreshAudit(){try{const a=await api('/api/audit');$('auditRows').innerHTML=a.map(x=>'<tr><td>'+esc(new Date(x.timestamp).toLocaleString())+'</td><td>'+esc(x.action)+'</td><td>'+esc(x.target||'')+'</td><td>'+esc(x.outcome)+'</td><td>'+esc(x.details||'')+'</td></tr>').join('')||'<tr><td colspan="5">No audit events.</td></tr>'}catch(e){$('auditRows').innerHTML='<tr><td colspan="5">'+esc(e)+'</td></tr>'}}
 async function refreshSettings(){try{const s=await api('/api/settings');$('settingsRows').innerHTML=s.map(x=>'<div class="setting"><div><strong>'+esc(x.key)+'</strong><div class="muted">'+esc(x.category)+' · '+esc(x.description)+'</div></div><div>'+ (x.isSecret?'<span class="warn">Configured secret (hidden)</span>':esc(x.value||''))+'</div><button class="danger" onclick="deleteSetting('+JSON.stringify(x.key)+')">Delete</button></div>').join('')||'<div class="muted" style="padding-top:12px">No custom settings configured.</div>';const d=await api('/api/settings/directories');$('dirData').value=d.data;$('dirModules').value=d.modules;$('dirEvidence').value=d.evidence;$('dirReports').value=d.reports;$('dirTools').value=d.tools;$('dirRuntimes').value=d.runtimes}catch(e){$('settingsRows').textContent=e.message}}
 async function saveSetting(){try{await api('/api/settings',{method:'PUT',body:JSON.stringify({key:$('setKey').value,category:$('setCategory').value||'General',value:$('setValue').value,isSecret:$('setSecret').value==='true',description:$('setDescription').value})});$('setValue').value='';refreshSettings()}catch(e){alert(e)}}
 async function deleteSetting(key){if(!confirm('Delete setting '+key+'?'))return;await api('/api/settings/'+encodeURIComponent(key),{method:'DELETE'});refreshSettings()}
