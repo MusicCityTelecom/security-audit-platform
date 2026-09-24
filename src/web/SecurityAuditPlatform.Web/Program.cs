@@ -7,6 +7,9 @@ using SecurityAuditPlatform.Infrastructure.Reports;
 using SecurityAuditPlatform.Infrastructure.Parsers;
 using SecurityAuditPlatform.Infrastructure.Jobs;
 using SecurityAuditPlatform.Infrastructure.Modules;
+using SecurityAuditPlatform.Infrastructure.Tools;
+using SecurityAuditPlatform.Infrastructure.Audit;
+using SecurityAuditPlatform.Infrastructure.Updates;
 
 var builder = WebApplication.CreateBuilder(args);
 var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "data");
@@ -23,6 +26,9 @@ builder.Services.AddSingleton<PlatformDatabase>(_ => new PlatformDatabase(Path.C
 builder.Services.AddSingleton<EngagementService>();
 builder.Services.AddSingleton<ExecutionEvidenceStore>();
 builder.Services.AddSingleton<SecurityAuditPlatform.Infrastructure.Settings.SettingsService>();
+builder.Services.AddSingleton<ToolRegistry>();
+builder.Services.AddSingleton<AuditLogService>();
+builder.Services.AddHttpClient<GitHubReleaseUpdateChecker>();
 builder.Services.AddSingleton<FindingStore>();
 builder.Services.AddSingleton<ReportService>();
 builder.Services.AddSingleton<NmapXmlParser>();
@@ -73,12 +79,18 @@ app.MapGet("/api/settings/directories", (SecurityAuditPlatform.Infrastructure.Se
         runtimes = settings.GetValue("directories.runtimes") ?? ""
     }));
 
+app.MapGet("/api/tools", (ToolRegistry tools) => Results.Ok(tools.CheckAll()));
+app.MapPost("/api/tools/check", (ToolRegistry tools) => Results.Ok(tools.CheckAll()));
+app.MapGet("/api/audit", (AuditLogService audit) => Results.Ok(audit.List()));
+app.MapGet("/api/updates/check", async (GitHubReleaseUpdateChecker checker, CancellationToken ct) =>
+    Results.Ok(await checker.CheckAsync("MusicCityTelecom", "security-audit-platform", "0.1.0", ct)));
+
 app.MapGet("/api/runtimes", () => Results.Ok(new { runtimes = new[] { "windows", "wsl", "container", "remote" }, executionProviders = new[] { "windows-process", "wsl2" } }));
 
 app.MapGet("/api/engagements", (EngagementService service) => Results.Ok(service.List()));
-app.MapPost("/api/engagements", (CreateEngagementRequest request, EngagementService service) => {
+app.MapPost("/api/engagements", (CreateEngagementRequest request, EngagementService service, AuditLogService audit) => {
     if (string.IsNullOrWhiteSpace(request.Name) || request.Targets.Count == 0) return Results.BadRequest("Name and at least one target are required.");
-    var engagement = service.Create(request.Name, request.Targets.Select(x => (x.Value, x.Excluded)), request.ExpiresAt);
+    var engagement = service.Create(request.Name, request.Targets.Select(x => (x.Value, x.Excluded)), request.ExpiresAt); audit.Write("engagement.create", "success", target: request.Name, details: new { engagement.Id, TargetCount = request.Targets.Count });
     return Results.Created($"/api/engagements/{engagement.Id}", engagement);
 });
 
@@ -103,8 +115,8 @@ app.MapGet("/api/jobs/{id:guid}/evidence", (Guid id, ExecutionEvidenceStore evid
     var result = evidence.Get(id);
     return result is null ? Results.NotFound() : Results.Ok(result);
 });
-app.MapPost("/api/jobs", (CreateJobRequest request, JobScheduler scheduler) => {
-    try { return Results.Accepted("/api/jobs", scheduler.Enqueue(request.ModuleId, request.Target, request.EngagementId, request.Confirmed)); }
+app.MapPost("/api/jobs", (CreateJobRequest request, JobScheduler scheduler, AuditLogService audit) => {
+    try { var job = scheduler.Enqueue(request.ModuleId, request.Target, request.EngagementId, request.Confirmed); audit.Write("job.queue", "success", target: request.Target, details: new { job.Id, job.ModuleId, request.Confirmed }); return Results.Accepted("/api/jobs", job); }
     catch (UnauthorizedAccessException ex) { return Results.Problem(ex.Message, statusCode: 403); }
     catch (KeyNotFoundException ex) { return Results.NotFound(ex.Message); }
     catch (InvalidOperationException ex) { return Results.BadRequest(ex.Message); }
