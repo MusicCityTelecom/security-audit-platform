@@ -40,9 +40,13 @@ public sealed class AuthorizationScope
 
     private static bool TryParseCidr(string value, out IPAddress network, out int prefix)
     {
-        network = IPAddress.None; prefix = 0;
+        network = IPAddress.None;
+        prefix = 0;
         var parts = value.Split('/', 2);
-        if (parts.Length != 2 || !IPAddress.TryParse(parts[0], out network) || !int.TryParse(parts[1], out prefix)) return false;
+        if (parts.Length != 2 || !IPAddress.TryParse(parts[0], out var parsed) || !int.TryParse(parts[1], out prefix))
+            return false;
+
+        network = parsed;
         var max = network.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 32 : 128;
         return prefix >= 0 && prefix <= max;
     }
