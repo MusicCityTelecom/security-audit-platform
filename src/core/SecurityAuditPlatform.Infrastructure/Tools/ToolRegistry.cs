@@ -52,7 +52,7 @@ public sealed class ToolRegistry
             }
             using var process = System.Diagnostics.Process.Start(psi);
             if (process is null) return new(tool, false, resolved, null, "Unable to start process.");
-            process.WaitForExit(5000);
+            if (!process.WaitForExit(5000)) { try { process.Kill(true); } catch { } return new(tool, false, resolved, null, "Version command timed out."); }
             var output = process.StandardOutput.ReadToEnd().Trim();
             if (string.IsNullOrWhiteSpace(output)) output = process.StandardError.ReadToEnd().Trim();
             return new(tool, process.ExitCode == 0 || !string.IsNullOrWhiteSpace(output), resolved, output.Split('\n').FirstOrDefault()?.Trim(), process.ExitCode == 0 ? null : "Version command returned a non-zero exit code.");
