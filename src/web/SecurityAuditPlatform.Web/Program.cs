@@ -2,6 +2,8 @@ using SecurityAuditPlatform.Core.Modules;
 using SecurityAuditPlatform.Infrastructure.Data;
 using SecurityAuditPlatform.Infrastructure.Engagements;
 using SecurityAuditPlatform.Infrastructure.Execution;
+using SecurityAuditPlatform.Infrastructure.Findings;
+using SecurityAuditPlatform.Infrastructure.Reports;
 using SecurityAuditPlatform.Infrastructure.Data;
 using SecurityAuditPlatform.Infrastructure.Jobs;
 using SecurityAuditPlatform.Infrastructure.Modules;
@@ -20,6 +22,8 @@ builder.Services.AddSingleton<IExecutionProvider>(sp => sp.GetRequiredService<Ws
 builder.Services.AddSingleton<PlatformDatabase>(_ => new PlatformDatabase(Path.Combine(dataDirectory, "platform.db")));
 builder.Services.AddSingleton<EngagementService>();
 builder.Services.AddSingleton<ExecutionEvidenceStore>();
+builder.Services.AddSingleton<FindingStore>();
+builder.Services.AddSingleton<ReportService>();
 builder.Services.AddSingleton<IModuleRegistry>(sp => new FileModuleRegistry(modulesDirectory, sp.GetRequiredService<ModuleManifestYamlStore>(), sp.GetRequiredService<ModuleManifestValidator>()));
 builder.Services.AddHttpClient<GitHubModuleImporter>();
 builder.Services.AddHttpClient<GitHubModuleInspector>();
@@ -59,6 +63,16 @@ app.MapPost("/api/engagements", (CreateEngagementRequest request, EngagementServ
 });
 
 app.MapGet("/api/jobs", (JobScheduler scheduler, PlatformDatabase database) => Results.Ok(new { active = scheduler.List(), history = database.ListJobs() }));
+app.MapGet("/api/findings", (FindingStore findings) => Results.Ok(findings.List()));
+app.MapPost("/api/findings", (CreateFindingRequest request, FindingStore findings) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Description)) return Results.BadRequest("Title and description are required.");
+    var finding = new SecurityAuditPlatform.Core.Findings.Finding(Guid.NewGuid(), request.Title, request.Description, request.Severity,
+        request.Asset, request.Remediation, request.EvidenceIds ?? [], DateTimeOffset.UtcNow);
+    return Results.Created($"/api/findings/{finding.Id}", findings.Save(finding));
+});
+app.MapGet("/api/reports/current.html", (ReportService reports) => Results.Content(reports.BuildHtml("Security Audit Platform Assessment Report"), "text/html; charset=utf-8"));
+
 app.MapGet("/api/jobs/{id:guid}/evidence", (Guid id, ExecutionEvidenceStore evidence) =>
 {
     var result = evidence.Get(id);
@@ -79,3 +93,4 @@ public sealed record GitHubModuleImportRequest(string RepositoryUrl, string? Rev
 public sealed record CreateEngagementRequest(string Name, List<ScopeTargetRequest> Targets, DateTimeOffset? ExpiresAt = null);
 public sealed record ScopeTargetRequest(string Value, bool Excluded = false);
 public sealed record CreateJobRequest(string ModuleId, Guid EngagementId, string Target, bool Confirmed = false);
+public sealed record CreateFindingRequest(string Title, string Description, SecurityAuditPlatform.Core.Findings.FindingSeverity Severity, string? Asset = null, string? Remediation = null, List<Guid>? EvidenceIds = null);
