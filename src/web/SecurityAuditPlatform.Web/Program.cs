@@ -21,10 +21,7 @@ builder.Services.AddSingleton<PlatformDatabase>(_ => new PlatformDatabase(Path.C
 builder.Services.AddSingleton<EngagementService>();
 builder.Services.AddSingleton<ExecutionEvidenceStore>();
 builder.Services.AddSingleton<IModuleRegistry>(sp => new FileModuleRegistry(modulesDirectory, sp.GetRequiredService<ModuleManifestYamlStore>(), sp.GetRequiredService<ModuleManifestValidator>()));
-builder.Services.AddSingleton(sp => new GitHubModuleImporter(
-    sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(GitHubModuleImporter)),
-    sp.GetRequiredService<ModuleManifestYamlStore>(),
-    sp.GetRequiredService<ModuleManifestValidator>(), modulesDirectory));
+builder.Services.AddHttpClient<GitHubModuleImporter>();
 builder.Services.AddHttpClient<GitHubModuleInspector>();
 builder.Services.AddHttpClient<GitHubModuleImporter>();
 builder.Services.AddSingleton<JobScheduler>();
