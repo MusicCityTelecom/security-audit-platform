@@ -2,6 +2,7 @@ using SecurityAuditPlatform.Core.Modules;
 using SecurityAuditPlatform.Infrastructure.Data;
 using SecurityAuditPlatform.Infrastructure.Engagements;
 using SecurityAuditPlatform.Infrastructure.Execution;
+using SecurityAuditPlatform.Infrastructure.Data;
 using SecurityAuditPlatform.Infrastructure.Jobs;
 using SecurityAuditPlatform.Infrastructure.Modules;
 
@@ -18,6 +19,7 @@ builder.Services.AddSingleton<WslExecutionProvider>();
 builder.Services.AddSingleton<IExecutionProvider>(sp => sp.GetRequiredService<WslExecutionProvider>());
 builder.Services.AddSingleton<PlatformDatabase>(_ => new PlatformDatabase(Path.Combine(dataDirectory, "platform.db")));
 builder.Services.AddSingleton<EngagementService>();
+builder.Services.AddSingleton<ExecutionEvidenceStore>();
 builder.Services.AddSingleton<IModuleRegistry>(sp => new FileModuleRegistry(modulesDirectory, sp.GetRequiredService<ModuleManifestYamlStore>(), sp.GetRequiredService<ModuleManifestValidator>()));
 builder.Services.AddHttpClient<GitHubModuleInspector>();
 builder.Services.AddSingleton<JobScheduler>();
@@ -48,6 +50,11 @@ app.MapPost("/api/engagements", (CreateEngagementRequest request, EngagementServ
 });
 
 app.MapGet("/api/jobs", (JobScheduler scheduler, PlatformDatabase database) => Results.Ok(new { active = scheduler.List(), history = database.ListJobs() }));
+app.MapGet("/api/jobs/{id:guid}/evidence", (Guid id, ExecutionEvidenceStore evidence) =>
+{
+    var result = evidence.Get(id);
+    return result is null ? Results.NotFound() : Results.Ok(result);
+});
 app.MapPost("/api/jobs", (CreateJobRequest request, JobScheduler scheduler) => {
     try { return Results.Accepted("/api/jobs", scheduler.Enqueue(request.ModuleId, request.Target, request.EngagementId, request.Confirmed)); }
     catch (UnauthorizedAccessException ex) { return Results.Problem(ex.Message, statusCode: 403); }
