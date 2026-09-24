@@ -49,13 +49,16 @@ public sealed class JobScheduler : BackgroundService
                 if (!_providers.TryGetValue(module.Manifest.Runtime, out var provider))
                     throw new InvalidOperationException($"No execution provider for runtime {module.Manifest.Runtime}.");
 
-                var plan = new ModuleExecutionPlan(module.Manifest.Id, module.Manifest.Runtime, module.Manifest.Entrypoint,
-                    [queued.Target], module.Directory, module.Manifest.NetworkBehavior, false);
-                var result = await provider.ExecuteAsync(new ExecutionRequest(plan.FileName, plan.Arguments, plan.WorkingDirectory), stoppingToken);
+                var definition = module.Manifest.Execution ??
+                    new ModuleExecutionDefinition(module.Manifest.Entrypoint, ["{target}"]);
+                var args = definition.Arguments.Select(x => x.Replace("{target}", queued.Target, StringComparison.Ordinal)).ToArray();
+                var plan = new ModuleExecutionPlan(module.Manifest.Id, module.Manifest.Runtime, definition.Executable,
+                    args, module.Directory, module.Manifest.NetworkBehavior, false);
+                var result = await provider.ExecuteAsync(new ExecutionRequest(plan.FileName, plan.Arguments, plan.WorkingDirectory,
+                    Timeout: TimeSpan.FromSeconds(Math.Clamp(definition.TimeoutSeconds, 1, 86400))), stoppingToken);
                 var state = result.Canceled ? JobState.Canceled : result.TimedOut ? JobState.TimedOut :
                     result.ExitCode == 0 ? JobState.Succeeded : JobState.Failed;
-                var error = string.IsNullOrWhiteSpace(result.StandardError)
-                    ? null : result.StandardError[..Math.Min(result.StandardError.Length, 4000)];
+                var error = string.IsNullOrWhiteSpace(result.StandardError) ? null : result.StandardError[..Math.Min(result.StandardError.Length, 4000)];
                 var completed = running with { State = state, FinishedAt = result.FinishedAt, ExitCode = result.ExitCode, Error = error };
                 _jobs[completed.Id] = completed; _database.SaveJob(completed);
             }
