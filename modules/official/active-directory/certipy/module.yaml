@@ -1,0 +1,35 @@
+schema_version: 1
+id: official.active-directory.certipy
+name: Certipy
+version: 0.1.0
+category: ActiveDirectory
+runtime: wsl
+entrypoint: certipy
+capabilities:
+  - active-directory
+privileges:
+  - network
+requires:
+  tools:
+    - certipy
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: certipy
+  arguments:
+    - "find"
+    - "-target"
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/ly4k/Certipy
+  ref: main
+evidence:
+  - stdout
+  - stderr
