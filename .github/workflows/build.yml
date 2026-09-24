@@ -11,5 +11,21 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - run: dotnet restore SecurityAuditPlatform.sln
-      - run: dotnet build SecurityAuditPlatform.sln --configuration Release --no-restore
-      - run: dotnet test SecurityAuditPlatform.sln --configuration Release --no-build
+      - name: Build
+        run: dotnet build SecurityAuditPlatform.sln --configuration Release --no-restore -bl:build.binlog
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics-${{ github.run_id }}
+          path: build.binlog
+          if-no-files-found: ignore
+      - name: Test
+        run: dotnet test SecurityAuditPlatform.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: '**/TestResults/*.trx'
+          if-no-files-found: ignore
