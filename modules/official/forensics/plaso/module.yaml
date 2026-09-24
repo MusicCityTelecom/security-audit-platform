@@ -1,0 +1,34 @@
+schema_version: 1
+id: official.forensics.plaso
+name: Plaso
+version: 0.1.0
+category: Forensics
+runtime: wsl
+entrypoint: log2timeline.py
+capabilities:
+  - forensics
+privileges:
+  - network
+requires:
+  tools:
+    - log2timeline.py
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: log2timeline.py
+  arguments:
+    - "{target}"
+    - "{target}.plaso"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/log2timeline/plaso
+  ref: main
+evidence:
+  - stdout
+  - stderr
