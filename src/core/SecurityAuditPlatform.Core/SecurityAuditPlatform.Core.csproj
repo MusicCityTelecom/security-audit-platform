@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>SecurityAuditPlatform.Core</RootNamespace>
+    <AssemblyName>SecurityAuditPlatform.Core</AssemblyName>
+  </PropertyGroup>
+</Project>
