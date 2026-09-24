@@ -12,13 +12,18 @@ jobs:
           dotnet-version: '10.0.x'
       - run: dotnet restore SecurityAuditPlatform.sln
       - name: Build
-        run: dotnet build SecurityAuditPlatform.sln --configuration Release --no-restore -bl:build.binlog
+        shell: pwsh
+        run: |
+          dotnet build SecurityAuditPlatform.sln --configuration Release --no-restore --verbosity minimal 2>&1 | Tee-Object build.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-diagnostics-${{ github.run_id }}
-          path: build.binlog
+          path: |
+            build.log
+            build.binlog
           if-no-files-found: ignore
       - name: Test
         run: dotnet test SecurityAuditPlatform.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
