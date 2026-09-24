@@ -30,7 +30,8 @@
 - [x] GitHub repository inspector
 - [x] Safe GitHub module importer
 - [ ] Dependency resolver
-- [ ] Tool installer/health manager
+- [x] Tool health manager
+- [ ] Tool installer
 - [ ] Module enable/disable/remove UI
 - [ ] Module update/rollback
 - [ ] Third-party module signing/trust policy
@@ -44,7 +45,7 @@
 - [ ] Asset inventory
 - [x] Findings model
 - [x] Evidence model
-- [ ] Report model
+- [x] Report model
 - [ ] Remediation/workflow model
 - [ ] Assessment templates
 
@@ -82,3 +83,25 @@
 - [ ] Automatic update service
 - [ ] Atomic rollback
 - [ ] Enterprise deployment mode
+
+## Operations and configuration
+- [x] Settings store
+- [x] Encrypted API-key/secret storage
+- [x] Directory configuration
+- [x] Tool path configuration
+- [x] Tool health checks
+- [x] Operator audit log
+- [x] GitHub update checking
+- [x] Windows update staging/backup script
+- [ ] Signed release verification
+- [ ] In-application update installation
+- [ ] Database migration framework
+
+## Quality and hardening
+- [x] Scope tests for IPv4/IPv6 CIDR and wildcard hostnames
+- [x] Module YAML parsing test
+- [ ] Full Windows CI validation
+- [ ] Integration tests with disposable WSL2
+- [ ] Installer smoke test
+- [ ] Threat model review
+- [ ] Dependency/SBOM generation in CI
