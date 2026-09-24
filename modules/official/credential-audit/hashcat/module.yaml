@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.credential-audit.hashcat
+name: Hashcat
+version: 0.1.0
+category: CredentialAudit
+runtime: wsl
+entrypoint: hashcat
+capabilities:
+  - credential-audit
+privileges:
+  - network
+requires:
+  tools:
+    - hashcat
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: hashcat
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/hashcat/hashcat
+  ref: main
+evidence:
+  - stdout
+  - stderr
