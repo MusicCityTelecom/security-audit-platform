@@ -10,6 +10,8 @@ using SecurityAuditPlatform.Infrastructure.Modules;
 using SecurityAuditPlatform.Infrastructure.Tools;
 using SecurityAuditPlatform.Infrastructure.Audit;
 using SecurityAuditPlatform.Infrastructure.Updates;
+using SecurityAuditPlatform.Infrastructure.Terminal;
+using SecurityAuditPlatform.Infrastructure.Runtimes;
 
 var builder = WebApplication.CreateBuilder(args);
 var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "data");
@@ -28,6 +30,8 @@ builder.Services.AddSingleton<ExecutionEvidenceStore>();
 builder.Services.AddSingleton<SecurityAuditPlatform.Infrastructure.Settings.SettingsService>();
 builder.Services.AddSingleton<ToolRegistry>();
 builder.Services.AddSingleton<AuditLogService>();
+builder.Services.AddSingleton<TerminalSessionManager>();
+builder.Services.AddSingleton<WslRuntimeService>();
 builder.Services.AddHttpClient<GitHubReleaseUpdateChecker>();
 builder.Services.AddSingleton<FindingStore>();
 builder.Services.AddSingleton<ReportService>();
@@ -40,6 +44,18 @@ builder.Services.AddSingleton<JobScheduler>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<JobScheduler>());
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var remote = context.Connection.RemoteIpAddress;
+    if (remote is not null && !System.Net.IPAddress.IsLoopback(remote))
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        await context.Response.WriteAsync("The local operator API only accepts loopback connections.");
+        return;
+    }
+    await next();
+});
 
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", service = "security-audit-platform", version = "0.1.0", utc = DateTimeOffset.UtcNow }));
 
@@ -78,6 +94,24 @@ app.MapGet("/api/settings/directories", (SecurityAuditPlatform.Infrastructure.Se
         tools = settings.GetValue("directories.tools") ?? "",
         runtimes = settings.GetValue("directories.runtimes") ?? ""
     }));
+
+app.MapGet("/api/terminals", (TerminalSessionManager terminals) => Results.Ok(terminals.List()));
+app.MapPost("/api/terminals", (CreateTerminalRequest request, TerminalSessionManager terminals, AuditLogService audit) =>
+{
+    try { var session = terminals.Create(request.Kind, request.WorkingDirectory); audit.Write("terminal.create","success",details:session); return Results.Created("/api/terminals/"+session.Id, session); }
+    catch (Exception ex) { audit.Write("terminal.create","failure",details:new { request.Kind, Error=ex.Message }); return Results.BadRequest(ex.Message); }
+});
+app.MapGet("/api/terminals/{id:guid}/output", (Guid id, TerminalSessionManager terminals) =>
+{
+    try { return Results.Ok(terminals.Read(id)); } catch (KeyNotFoundException ex) { return Results.NotFound(ex.Message); }
+});
+app.MapPost("/api/terminals/{id:guid}/input", async (Guid id, TerminalInputRequest request, TerminalSessionManager terminals, CancellationToken ct) =>
+{
+    try { await terminals.WriteAsync(id, request.Input, ct); return Results.NoContent(); } catch (KeyNotFoundException ex) { return Results.NotFound(ex.Message); } catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+});
+app.MapDelete("/api/terminals/{id:guid}", (Guid id, TerminalSessionManager terminals, AuditLogService audit) => { terminals.Close(id); audit.Write("terminal.close","success",details:new { id }); return Results.NoContent(); });
+
+app.MapGet("/api/wsl", (WslRuntimeService wsl) => Results.Ok(new { status=wsl.Status(), distributions=wsl.ListDistributions() }));
 
 app.MapGet("/api/tools", (ToolRegistry tools) => Results.Ok(tools.CheckAll()));
 app.MapPost("/api/tools/check", (ToolRegistry tools) => Results.Ok(tools.CheckAll()));
@@ -131,4 +165,6 @@ public sealed record CreateEngagementRequest(string Name, List<ScopeTargetReques
 public sealed record ScopeTargetRequest(string Value, bool Excluded = false);
 public sealed record CreateJobRequest(string ModuleId, Guid EngagementId, string Target, bool Confirmed = false);
 public sealed record ParseOutputRequest(string Output);
+public sealed record CreateTerminalRequest(SecurityAuditPlatform.Infrastructure.Terminal.TerminalKind Kind, string? WorkingDirectory = null);
+public sealed record TerminalInputRequest(string Input);
 public sealed record CreateFindingRequest(string Title, string Description, SecurityAuditPlatform.Core.Findings.FindingSeverity Severity, string? Asset = null, string? Remediation = null, List<Guid>? EvidenceIds = null);
