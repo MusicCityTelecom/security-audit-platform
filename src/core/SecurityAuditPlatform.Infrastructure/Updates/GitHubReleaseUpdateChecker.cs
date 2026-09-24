@@ -19,6 +19,9 @@ public sealed class GitHubReleaseUpdateChecker
         var tag=root.TryGetProperty("tag_name",out var t)?t.GetString():null;
         var url=root.TryGetProperty("html_url",out var u)?u.GetString():null;
         var published=root.TryGetProperty("published_at",out var p)?p.GetString():null;
-        return new(!string.Equals(tag,currentVersion,StringComparison.OrdinalIgnoreCase),currentVersion,tag,url,published);
+        var current = ParseVersion(currentVersion);
+        var latest = ParseVersion(tag);
+        var available = latest is not null && current is not null ? latest > current : !string.Equals(tag, currentVersion, StringComparison.OrdinalIgnoreCase);
+        return new(available,currentVersion,tag,url,published);
     }
 }
