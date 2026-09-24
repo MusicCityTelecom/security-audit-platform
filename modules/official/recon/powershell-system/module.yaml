@@ -1,0 +1,28 @@
+schema_version: 1
+id: official.recon.powershell-system
+name: Windows PowerShell System Recon
+version: 0.1.0
+category: recon
+runtime: windows
+entrypoint: powershell.exe
+capabilities:
+  - local-system-enumeration
+  - process-enumeration
+  - network-configuration
+privileges:
+  - user
+requires:
+  tools:
+    - powershell
+  hardware: []
+  runtimes:
+    - windows
+network:
+  behavior: passive
+license:
+  spdx: MIT
+source:
+  type: builtin
+evidence:
+  - stdout
+  - stderr
