@@ -6,4 +6,8 @@
   <ItemGroup>
     <ProjectReference Include="../SecurityAuditPlatform.Core/SecurityAuditPlatform.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
 </Project>
