@@ -5,7 +5,6 @@ using SecurityAuditPlatform.Infrastructure.Execution;
 using SecurityAuditPlatform.Infrastructure.Findings;
 using SecurityAuditPlatform.Infrastructure.Reports;
 using SecurityAuditPlatform.Infrastructure.Parsers;
-using SecurityAuditPlatform.Infrastructure.Data;
 using SecurityAuditPlatform.Infrastructure.Jobs;
 using SecurityAuditPlatform.Infrastructure.Modules;
 
@@ -23,6 +22,7 @@ builder.Services.AddSingleton<IExecutionProvider>(sp => sp.GetRequiredService<Ws
 builder.Services.AddSingleton<PlatformDatabase>(_ => new PlatformDatabase(Path.Combine(dataDirectory, "platform.db")));
 builder.Services.AddSingleton<EngagementService>();
 builder.Services.AddSingleton<ExecutionEvidenceStore>();
+builder.Services.AddSingleton<SecurityAuditPlatform.Infrastructure.Settings.SettingsService>();
 builder.Services.AddSingleton<FindingStore>();
 builder.Services.AddSingleton<ReportService>();
 builder.Services.AddSingleton<NmapXmlParser>();
@@ -30,7 +30,6 @@ builder.Services.AddSingleton<NucleiJsonlParser>();
 builder.Services.AddSingleton<IModuleRegistry>(sp => new FileModuleRegistry(modulesDirectory, sp.GetRequiredService<ModuleManifestYamlStore>(), sp.GetRequiredService<ModuleManifestValidator>()));
 builder.Services.AddHttpClient<GitHubModuleImporter>();
 builder.Services.AddHttpClient<GitHubModuleInspector>();
-builder.Services.AddHttpClient<GitHubModuleImporter>();
 builder.Services.AddSingleton<JobScheduler>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<JobScheduler>());
 
@@ -55,6 +54,24 @@ app.MapPost("/api/modules/import-github", async (GitHubModuleImportRequest reque
     registry.Refresh();
     return Results.Ok(result);
 });
+
+app.MapGet("/api/settings", (SecurityAuditPlatform.Infrastructure.Settings.SettingsService settings) => Results.Ok(settings.List()));
+app.MapPut("/api/settings", (SecurityAuditPlatform.Infrastructure.Settings.SetSettingRequest request, SecurityAuditPlatform.Infrastructure.Settings.SettingsService settings) =>
+{
+    try { return Results.Ok(settings.Set(request)); } catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+});
+app.MapDelete("/api/settings/{key}", (string key, SecurityAuditPlatform.Infrastructure.Settings.SettingsService settings) =>
+    settings.Delete(key) ? Results.NoContent() : Results.NotFound());
+
+app.MapGet("/api/settings/directories", (SecurityAuditPlatform.Infrastructure.Settings.SettingsService settings) =>
+    Results.Ok(new {
+        data = settings.GetValue("directories.data") ?? "",
+        modules = settings.GetValue("directories.modules") ?? "",
+        evidence = settings.GetValue("directories.evidence") ?? "",
+        reports = settings.GetValue("directories.reports") ?? "",
+        tools = settings.GetValue("directories.tools") ?? "",
+        runtimes = settings.GetValue("directories.runtimes") ?? ""
+    }));
 
 app.MapGet("/api/runtimes", () => Results.Ok(new { runtimes = new[] { "windows", "wsl", "container", "remote" }, executionProviders = new[] { "windows-process", "wsl2" } }));
 
