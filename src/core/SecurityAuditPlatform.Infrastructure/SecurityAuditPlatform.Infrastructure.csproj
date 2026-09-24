@@ -4,6 +4,6 @@
     <AssemblyName>SecurityAuditPlatform.Infrastructure</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\\SecurityAuditPlatform.Core\\SecurityAuditPlatform.Core.csproj" />
+    <ProjectReference Include="../SecurityAuditPlatform.Core/SecurityAuditPlatform.Core.csproj" />
   </ItemGroup>
 </Project>
