@@ -1,0 +1,35 @@
+schema_version: 1
+id: official.recon.subfinder
+name: Subfinder
+version: 0.1.0
+category: Recon
+runtime: wsl
+entrypoint: subfinder
+capabilities:
+  - recon
+privileges:
+  - network
+requires:
+  tools:
+    - subfinder
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: subfinder
+  arguments:
+    - "-d"
+    - "{target}"
+    - "-silent"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/projectdiscovery/subfinder
+  ref: main
+evidence:
+  - stdout
+  - stderr
