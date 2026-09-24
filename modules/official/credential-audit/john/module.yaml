@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.credential-audit.john
+name: John the Ripper
+version: 0.1.0
+category: CredentialAudit
+runtime: wsl
+entrypoint: john
+capabilities:
+  - credential-audit
+privileges:
+  - network
+requires:
+  tools:
+    - john
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: john
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/openwall/john
+  ref: main
+evidence:
+  - stdout
+  - stderr
