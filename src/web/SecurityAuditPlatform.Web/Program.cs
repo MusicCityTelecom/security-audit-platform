@@ -4,6 +4,7 @@ using SecurityAuditPlatform.Infrastructure.Engagements;
 using SecurityAuditPlatform.Infrastructure.Execution;
 using SecurityAuditPlatform.Infrastructure.Findings;
 using SecurityAuditPlatform.Infrastructure.Reports;
+using SecurityAuditPlatform.Infrastructure.Parsers;
 using SecurityAuditPlatform.Infrastructure.Data;
 using SecurityAuditPlatform.Infrastructure.Jobs;
 using SecurityAuditPlatform.Infrastructure.Modules;
@@ -24,6 +25,8 @@ builder.Services.AddSingleton<EngagementService>();
 builder.Services.AddSingleton<ExecutionEvidenceStore>();
 builder.Services.AddSingleton<FindingStore>();
 builder.Services.AddSingleton<ReportService>();
+builder.Services.AddSingleton<NmapXmlParser>();
+builder.Services.AddSingleton<NucleiJsonlParser>();
 builder.Services.AddSingleton<IModuleRegistry>(sp => new FileModuleRegistry(modulesDirectory, sp.GetRequiredService<ModuleManifestYamlStore>(), sp.GetRequiredService<ModuleManifestValidator>()));
 builder.Services.AddHttpClient<GitHubModuleImporter>();
 builder.Services.AddHttpClient<GitHubModuleInspector>();
@@ -71,7 +74,12 @@ app.MapPost("/api/findings", (CreateFindingRequest request, FindingStore finding
         request.Asset, request.Remediation, request.EvidenceIds ?? [], DateTimeOffset.UtcNow);
     return Results.Created($"/api/findings/{finding.Id}", findings.Save(finding));
 });
-app.MapGet("/api/reports/current.html", (ReportService reports) => Results.Content(reports.BuildHtml("Security Audit Platform Assessment Report"), "text/html; charset=utf-8"));
+app.MapGet("/api/reports/current.html", (ReportService reports) => Results.Content(reports.BuildHtml("Security Audit Platform Assessment Report"), "text/html; charset=utf-8")));
+app.MapPost("/api/parsers/nmap", (ParseOutputRequest request, NmapXmlParser parser) =>
+{
+    try { return Results.Ok(parser.Parse(request.Output)); } catch (Exception ex) { return Results.BadRequest(ex.Message); }
+});
+app.MapPost("/api/parsers/nuclei", (ParseOutputRequest request, NucleiJsonlParser parser) => Results.Ok(parser.Parse(request.Output)));
 
 app.MapGet("/api/jobs/{id:guid}/evidence", (Guid id, ExecutionEvidenceStore evidence) =>
 {
@@ -93,4 +101,5 @@ public sealed record GitHubModuleImportRequest(string RepositoryUrl, string? Rev
 public sealed record CreateEngagementRequest(string Name, List<ScopeTargetRequest> Targets, DateTimeOffset? ExpiresAt = null);
 public sealed record ScopeTargetRequest(string Value, bool Excluded = false);
 public sealed record CreateJobRequest(string ModuleId, Guid EngagementId, string Target, bool Confirmed = false);
+public sealed record ParseOutputRequest(string Output);
 public sealed record CreateFindingRequest(string Title, string Description, SecurityAuditPlatform.Core.Findings.FindingSeverity Severity, string? Asset = null, string? Remediation = null, List<Guid>? EvidenceIds = null);
