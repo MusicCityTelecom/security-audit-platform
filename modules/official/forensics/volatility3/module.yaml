@@ -1,0 +1,35 @@
+schema_version: 1
+id: official.forensics.volatility3
+name: Volatility 3
+version: 0.1.0
+category: Forensics
+runtime: wsl
+entrypoint: vol
+capabilities:
+  - forensics
+privileges:
+  - network
+requires:
+  tools:
+    - vol
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: vol
+  arguments:
+    - "-f"
+    - "{target}"
+    - "windows.info"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/volatilityfoundation/volatility3
+  ref: main
+evidence:
+  - stdout
+  - stderr
