@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.identity.bloodhound
+name: BloodHound
+version: 0.1.0
+category: Identity
+runtime: wsl
+entrypoint: bloodhound
+capabilities:
+  - identity
+privileges:
+  - network
+requires:
+  tools:
+    - bloodhound
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: bloodhound
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/SpecterOps/BloodHound
+  ref: main
+evidence:
+  - stdout
+  - stderr
