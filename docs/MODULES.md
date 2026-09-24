@@ -1,91 +1,53 @@
 # Module System
 
-The module system is a first-class extension point. The core platform must not need to be modified merely to add a new security tool or workflow.
+Modules are first-class extensions. The core platform should not need to be modified to add another scanner, enumeration utility, parser, wireless workflow, exploitation framework, or reporting integration.
 
-## Module categories
+## Manifest
 
-- `recon`
-- `network`
-- `web`
-- `wireless`
-- `identity`
-- `active-directory`
-- `vulnerability`
-- `exploitation`
-- `post-exploitation`
-- `credential-audit`
-- `forensics`
-- `malware-analysis`
-- `firmware`
-- `reporting`
-- `utility`
+A module declares:
 
-## Module sources
+- stable ID
+- version
+- category
+- runtime
+- entrypoint
+- capabilities
+- privileges
+- required tools/hardware/runtimes
+- network behavior
+- execution template
+- input/output/evidence metadata
+- license
+- upstream source
 
-1. Official modules maintained in this repository.
-2. Community modules installed locally or from approved Git repositories.
-3. Organization/private modules for customer-specific workflows.
+Execution templates use argument arrays instead of a single shell command string. {target} is replaced by the target selected by the job and is passed as a discrete process argument.
 
-## Required isolation
+## Import
 
-Modules must declare what they execute and where. The UI should surface runtime, privilege, network impact, and required hardware before execution.
+The GitHub importer:
 
-A module must never silently elevate privileges, change host security controls, alter network configuration, or perform destructive actions.
+1. inspects repository metadata and file tree;
+2. reports license and install-script signals;
+3. downloads source into a temporary staging directory;
+4. rejects absolute and traversal archive paths;
+5. locates and parses module.yaml;
+6. validates the manifest;
+7. installs only validated module files;
+8. refreshes the registry.
 
-## Suggested manifest
+It does not execute repository install scripts, workflow files, build hooks, or package installers.
 
-```yaml
-id: example.network.nmap
-name: Nmap Network Scanner
-version: 0.1.0
-category: network
-runtime: wsl
-entrypoint: module.py
-capabilities:
-  - host-discovery
-  - port-scanning
-  - service-enumeration
-privileges:
-  - network
-requires:
-  tools:
-    - nmap
-license:
-  spdx: GPL-2.0-or-later
-source:
-  type: builtin
-```
+## Runtime classes
 
-The manifest format is intentionally versioned. Future schema revisions must support migration rather than silently changing meaning.
+- Windows: PowerShell, CMD, native Windows tools, Windows security/network APIs.
+- WSL2: Linux security tooling such as Nmap, Nuclei, Metasploit, Aircrack-ng, Wifite2, Hashcat, Binwalk, Impacket, Masscan, and other compatible projects.
+- Container: planned isolated services and scanners.
+- Remote: planned authenticated agents for distributed assessments.
 
-## User customization
+## High-impact controls
 
-Users should be able to:
+Passive, active, disruptive, and destructive behavior are explicit metadata. Active modules still require engagement scope. Disruptive/destructive modules additionally require explicit operator confirmation.
 
-- clone an existing module
-- edit its manifest
-- change its command templates
-- add parameters and validation
-- add custom parsers
-- add evidence mappings
-- create custom workflows
-- publish a module to GitHub
-- import a module from a GitHub repository
+## Customization
 
-## GitHub project import
-
-A future importer should inspect a repository and require an explicit manifest or generate a reviewable proposed manifest. It should never blindly execute arbitrary repository install scripts.
-
-Recommended flow:
-
-```text
-GitHub URL
-  -> Repository inspection
-  -> License/dependency inspection
-  -> Runtime detection
-  -> Proposed module manifest
-  -> Operator approval
-  -> Isolated installation
-  -> Health check
-  -> Available module
-```
+Operators will be able to clone an installed module, edit its manifest and command templates, add parsers/evidence mappings, test it in a disposable runtime, and publish the module to a private or public Git repository without changing the core platform.
