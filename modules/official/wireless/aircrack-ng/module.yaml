@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.wireless.aircrack-ng
+name: Aircrack-ng
+version: 0.1.0
+category: Wireless
+runtime: wsl
+entrypoint: aircrack-ng
+capabilities:
+  - wireless
+privileges:
+  - network
+requires:
+  tools:
+    - aircrack-ng
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: aircrack-ng
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/aircrack-ng/aircrack-ng
+  ref: main
+evidence:
+  - stdout
+  - stderr
