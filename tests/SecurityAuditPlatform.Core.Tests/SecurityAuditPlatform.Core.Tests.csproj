@@ -10,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/core/SecurityAuditPlatform.Core/SecurityAuditPlatform.Core.csproj" />
+    <ProjectReference Include="../../src/core/SecurityAuditPlatform.Infrastructure/SecurityAuditPlatform.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
