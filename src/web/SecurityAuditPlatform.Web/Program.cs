@@ -74,7 +74,7 @@ app.MapPost("/api/findings", (CreateFindingRequest request, FindingStore finding
         request.Asset, request.Remediation, request.EvidenceIds ?? [], DateTimeOffset.UtcNow);
     return Results.Created($"/api/findings/{finding.Id}", findings.Save(finding));
 });
-app.MapGet("/api/reports/current.html", (ReportService reports) => Results.Content(reports.BuildHtml("Security Audit Platform Assessment Report"), "text/html; charset=utf-8")));
+app.MapGet("/api/reports/current.html", (ReportService reports) => Results.Content(reports.BuildHtml("Security Audit Platform Assessment Report"), "text/html; charset=utf-8"));
 app.MapPost("/api/parsers/nmap", (ParseOutputRequest request, NmapXmlParser parser) =>
 {
     try { return Results.Ok(parser.Parse(request.Output)); } catch (Exception ex) { return Results.BadRequest(ex.Message); }
