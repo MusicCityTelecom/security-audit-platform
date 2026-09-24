@@ -21,7 +21,12 @@ builder.Services.AddSingleton<PlatformDatabase>(_ => new PlatformDatabase(Path.C
 builder.Services.AddSingleton<EngagementService>();
 builder.Services.AddSingleton<ExecutionEvidenceStore>();
 builder.Services.AddSingleton<IModuleRegistry>(sp => new FileModuleRegistry(modulesDirectory, sp.GetRequiredService<ModuleManifestYamlStore>(), sp.GetRequiredService<ModuleManifestValidator>()));
+builder.Services.AddSingleton(sp => new GitHubModuleImporter(
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(GitHubModuleImporter)),
+    sp.GetRequiredService<ModuleManifestYamlStore>(),
+    sp.GetRequiredService<ModuleManifestValidator>(), modulesDirectory));
 builder.Services.AddHttpClient<GitHubModuleInspector>();
+builder.Services.AddHttpClient<GitHubModuleImporter>();
 builder.Services.AddSingleton<JobScheduler>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<JobScheduler>());
 
@@ -39,6 +44,13 @@ app.MapPost("/api/modules/refresh", (IModuleRegistry registry) => { registry.Ref
 app.MapPost("/api/modules/validate", (ModuleManifest manifest, ModuleManifestValidator validator) => { var issues = validator.Validate(manifest); return Results.Ok(new { valid = issues.All(x => !x.IsError), issues }); });
 app.MapPost("/api/modules/serialize", (ModuleManifest manifest, ModuleJsonStore store) => Results.Text(store.Serialize(manifest), "application/json"));
 app.MapPost("/api/modules/inspect-github", async (GitHubModuleInspectRequest request, GitHubModuleInspector inspector, CancellationToken ct) => Results.Ok(await inspector.InspectAsync(request.RepositoryUrl, ct)));
+app.MapPost("/api/modules/import-github", async (GitHubModuleImportRequest request, GitHubModuleImporter importer, IModuleRegistry registry, CancellationToken ct) =>
+{
+    var result = await importer.ImportAsync(request.RepositoryUrl, request.Revision, ct);
+    if (result.Issues.Any(x => x.IsError)) return Results.BadRequest(result);
+    registry.Refresh();
+    return Results.Ok(result);
+});
 
 app.MapGet("/api/runtimes", () => Results.Ok(new { runtimes = new[] { "windows", "wsl", "container", "remote" }, executionProviders = new[] { "windows-process", "wsl2" } }));
 
@@ -66,6 +78,7 @@ app.MapFallback(async context => { context.Response.ContentType = "text/html; ch
 app.Run();
 
 public sealed record GitHubModuleInspectRequest(string RepositoryUrl);
+public sealed record GitHubModuleImportRequest(string RepositoryUrl, string? Revision = null);
 public sealed record CreateEngagementRequest(string Name, List<ScopeTargetRequest> Targets, DateTimeOffset? ExpiresAt = null);
 public sealed record ScopeTargetRequest(string Value, bool Excluded = false);
 public sealed record CreateJobRequest(string ModuleId, Guid EngagementId, string Target, bool Confirmed = false);
