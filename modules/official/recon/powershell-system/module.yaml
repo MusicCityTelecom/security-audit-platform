@@ -19,6 +19,14 @@ requires:
     - windows
 network:
   behavior: passive
+execution:
+  executable: powershell.exe
+  arguments:
+    - "-NoProfile"
+    - "-NonInteractive"
+    - "-Command"
+    - "$PSVersionTable; Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,BuildNumber; Get-NetIPConfiguration | Format-List"
+  timeout_seconds: 300
 license:
   spdx: MIT
 source:
