@@ -1,10 +1,45 @@
 using System.Text.Json;
 using SecurityAuditPlatform.Core.Findings;
+using SecurityAuditPlatform.Core.Assets;
 
 namespace SecurityAuditPlatform.Infrastructure.Parsers;
 
 public sealed class NucleiJsonlParser
 {
+    public IReadOnlyList<AssetObservation> ParseAssets(string jsonl, string source = "nuclei")
+    {
+        var observations = new List<AssetObservation>();
+        foreach (var line in jsonl.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(line);
+                var root = doc.RootElement;
+                var host = root.TryGetProperty("host", out var h) ? h.GetString() : null;
+                var ip = root.TryGetProperty("ip", out var ipValue) ? ipValue.GetString() : null;
+                var url = root.TryGetProperty("matched-at", out var matched) ? matched.GetString() : null;
+                if (!string.IsNullOrWhiteSpace(ip))
+                    observations.Add(new AssetObservation(ip, AssetKind.Host, Source: source));
+                if (!string.IsNullOrWhiteSpace(host))
+                    observations.Add(new AssetObservation(host, AssetKind.Domain, Source: source));
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    var service = AssetKind.WebApplication;
+                    int? port = null;
+                    string? protocol = null;
+                    if (Uri.TryCreate(url, UriKind.Absolute, out var parsed))
+                    {
+                        protocol = parsed.Scheme;
+                        port = parsed.IsDefaultPort ? null : parsed.Port;
+                        observations.Add(new AssetObservation(url, service, Hostname: parsed.Host, Port: port, Protocol: protocol, Source: source));
+                    }
+                }
+            }
+            catch (JsonException) { }
+        }
+        return observations;
+    }
+
     public IReadOnlyList<Finding> Parse(string jsonl)
     {
         var findings = new List<Finding>();
