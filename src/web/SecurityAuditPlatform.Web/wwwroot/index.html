@@ -4,37 +4,95 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Security Audit Platform</title>
 <style>
-:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0a0f1c;color:#e9eef8}header{height:64px;padding:0 24px;display:flex;align-items:center;border-bottom:1px solid #263047;background:#0d1424;position:sticky;top:0;z-index:2}header strong{font-size:18px}header span{margin-left:10px;color:#7f8ba6}main{max-width:1400px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:#111a2b;border:1px solid #263047;border-radius:12px;padding:18px}.metric{font-size:30px;font-weight:750;margin-top:5px}.muted{color:#8995ae;font-size:13px}.section{margin-top:18px}.toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between}.table{width:100%;border-collapse:collapse;margin-top:12px}.table th,.table td{text-align:left;padding:10px 8px;border-top:1px solid #263047;font-size:13px}.pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#1b2740;font-size:12px}.ok{color:#75d69a}.warn{color:#e5c477}.bad{color:#e07a7a}button{background:#1a6cff;border:0;border-radius:7px;color:#fff;padding:8px 12px;cursor:pointer}button:hover{filter:brightness(1.12)}@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.grid{grid-template-columns:1fr}main{padding:14px}}
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,system-ui,sans-serif;background:#090e18;color:#e8edf7}header{height:64px;padding:0 24px;display:flex;align-items:center;border-bottom:1px solid #263047;background:#0d1422;position:sticky;top:0;z-index:5}header strong{font-size:18px}header span{margin-left:10px;color:#8490a8}main{max-width:1500px;margin:auto;padding:22px 24px}.nav{display:flex;gap:8px;margin-bottom:18px}.nav button{background:#131d30}.nav button.active{background:#246bdb}.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:#101929;border:1px solid #263047;border-radius:12px;padding:18px}.metric{font-size:30px;font-weight:750;margin-top:5px}.muted{color:#8793ab;font-size:13px}.section{margin-top:18px}.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between}h2{margin:0 0 4px}.table{width:100%;border-collapse:collapse;margin-top:12px}.table th,.table td{text-align:left;padding:10px 8px;border-top:1px solid #263047;font-size:13px;vertical-align:top}.pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#1b2740;font-size:12px}button{background:#1f6feb;border:0;border-radius:7px;color:#fff;padding:8px 12px;cursor:pointer}button:hover{filter:brightness(1.1)}button.secondary{background:#25324a}button.danger{background:#9e3c49}input,select,textarea{width:100%;background:#0b1321;border:1px solid #33415d;border-radius:7px;color:#eef3fb;padding:9px}textarea{min-height:90px;resize:vertical}.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.setting{display:grid;grid-template-columns:1fr 1.4fr auto;gap:10px;align-items:center;border-top:1px solid #263047;padding:12px 0}.setting:first-child{border-top:0}.notice{padding:10px 12px;background:#16223a;border:1px solid #2b3c5f;border-radius:8px;margin:12px 0}.ok{color:#74d89b}.bad{color:#e07a7a}.warn{color:#e4c16d}@media(max-width:900px){.grid,.form{grid-template-columns:1fr}.setting{grid-template-columns:1fr}.nav{overflow:auto}}
 </style>
 </head>
 <body>
 <header><strong>Security Audit Platform</strong><span>local operator console</span><div style="margin-left:auto" class="muted" id="clock"></div></header>
 <main>
+<nav class="nav">
+<button onclick="showPage('dashboard',this)" class="active">Dashboard</button>
+<button onclick="showPage('modules',this)">Modules</button>
+<button onclick="showPage('engagements',this)">Engagements</button>
+<button onclick="showPage('jobs',this)">Jobs</button>
+<button onclick="showPage('findings',this)">Findings</button>
+<button onclick="showPage('settings',this)">Settings</button>
+</nav>
+
+<section id="dashboard" class="page active">
 <div class="grid">
 <section class="card"><div class="muted">Engine</div><div class="metric ok" id="status">…</div><div class="muted" id="version"></div></section>
-<section class="card"><div class="muted">Installed modules</div><div class="metric" id="modules">…</div><div class="muted">manifest registry</div></section>
-<section class="card"><div class="muted">Jobs</div><div class="metric" id="jobs">…</div><div class="muted">queued / running / history</div></section>
-<section class="card"><div class="muted">Execution</div><div class="metric">2</div><div class="muted">Windows + WSL2 providers</div></section>
+<section class="card"><div class="muted">Installed modules</div><div class="metric" id="modulesCount">…</div><div class="muted">validated registry entries</div></section>
+<section class="card"><div class="muted">Jobs</div><div class="metric" id="jobsCount">…</div><div class="muted">local execution history</div></section>
+<section class="card"><div class="muted">Findings</div><div class="metric" id="findingsCount">…</div><div class="muted">normalized assessment findings</div></section>
 </div>
-<section class="card section"><div class="toolbar"><div><h2 style="margin:0">Modules</h2><div class="muted">Validated module definitions currently visible to the local registry.</div></div><button onclick="refreshAll()">Refresh</button></div><table class="table"><thead><tr><th>ID</th><th>Category</th><th>Runtime</th><th>Network</th><th>State</th></tr></thead><tbody id="moduleRows"><tr><td colspan="5">Loading…</td></tr></tbody></table></section>
-<section class="card section"><h2 style="margin:0">Recent jobs</h2><div class="muted">Execution history and evidence are retained locally.</div><table class="table"><thead><tr><th>Module</th><th>Target</th><th>State</th><th>Created</th></tr></thead><tbody id="jobRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></section>
+<section class="card section"><div class="toolbar"><div><h2>Recent jobs</h2><div class="muted">Execution history and evidence are retained locally.</div></div><button onclick="refreshAll()">Refresh</button></div><table class="table"><thead><tr><th>Module</th><th>Target</th><th>State</th><th>Created</th></tr></thead><tbody id="jobRows"></tbody></table></section>
+</section>
+
+<section id="modules" class="page">
+<section class="card"><div class="toolbar"><div><h2>Module registry</h2><div class="muted">Modules are metadata-driven and can be imported from GitHub without executing repository installers.</div></div><button onclick="refreshModules()">Refresh</button></div><table class="table"><thead><tr><th>ID</th><th>Category</th><th>Runtime</th><th>Network</th><th>State</th></tr></thead><tbody id="moduleRows"></tbody></table></section>
+<section class="card section"><h2>Import module from GitHub</h2><div class="muted">Inspect first, review the repository, then explicitly import. Only repositories containing a valid module.yaml are installable.</div><div class="form" style="margin-top:12px"><div class="field"><label>Repository URL</label><input id="repoUrl" placeholder="https://github.com/owner/project"></div><div class="field"><label>Revision (optional)</label><input id="repoRevision" placeholder="main"></div></div><div style="margin-top:12px"><button onclick="inspectRepo()">Inspect</button> <button onclick="importRepo()" class="secondary">Import validated module</button></div><pre id="repoResult" class="notice" style="white-space:pre-wrap;max-height:300px;overflow:auto"></pre></section>
+</section>
+
+<section id="engagements" class="page">
+<section class="card"><h2>New engagement</h2><div class="muted">Execution is scope-bound. Targets must be explicitly included.</div><div class="form" style="margin-top:12px"><div class="field"><label>Name</label><input id="engName" placeholder="Internal network assessment"></div><div class="field"><label>Expires</label><input id="engExpires" type="datetime-local"></div><div class="field full"><label>Included targets (one per line)</label><textarea id="engTargets" placeholder="192.168.1.10&#10;app.example.test"></textarea></div><div class="field full"><label>Excluded targets (one per line)</label><textarea id="engExcludes" placeholder="192.168.1.1"></textarea></div></div><div style="margin-top:12px"><button onclick="createEngagement()">Create engagement</button></div></section>
+<section class="card section"><h2>Existing engagements</h2><table class="table"><thead><tr><th>Name</th><th>ID</th><th>Scope</th><th>Expires</th></tr></thead><tbody id="engRows"></tbody></table></section>
+</section>
+
+<section id="jobs" class="page">
+<section class="card"><h2>Queue module job</h2><div class="muted">The scheduler will reject targets outside the selected engagement.</div><div class="form" style="margin-top:12px"><div class="field"><label>Module</label><select id="jobModule"></select></div><div class="field"><label>Engagement</label><select id="jobEngagement"></select></div><div class="field"><label>Target</label><input id="jobTarget"></div><div class="field"><label>High-impact confirmation</label><select id="jobConfirm"><option value="false">No</option><option value="true">Yes — I confirm this operation is authorized</option></select></div></div><div style="margin-top:12px"><button onclick="queueJob()">Queue job</button></div><pre id="jobResult" class="notice" style="white-space:pre-wrap"></pre></section>
+</section>
+
+<section id="findings" class="page">
+<section class="card"><div class="toolbar"><div><h2>Findings</h2><div class="muted">Normalized findings can be linked to collected evidence and included in reports.</div></div><button onclick="refreshFindings()">Refresh</button></div><table class="table"><thead><tr><th>Severity</th><th>Title</th><th>Asset</th><th>Description</th></tr></thead><tbody id="findingRows"></tbody></table></section>
+<section class="card section"><div class="toolbar"><div><h2>Report</h2><div class="muted">Generate the current HTML assessment report.</div></div><button onclick="window.open('/api/reports/current.html','_blank')">Open report</button></div></section>
+</section>
+
+<section id="settings" class="page">
+<section class="card">
+<h2>Settings</h2>
+<div class="muted">Application configuration, tool directories, API credentials, runtime paths, and other operator preferences.</div>
+<div class="notice"><strong>Secrets:</strong> API keys and tokens are encrypted at rest with Windows DPAPI and are never returned by the settings API. The UI only shows that a secret is configured.</div>
+<div style="margin-top:15px" class="form">
+<div class="field"><label>Setting key</label><input id="setKey" placeholder="providers.shodan.apiKey"></div>
+<div class="field"><label>Category</label><input id="setCategory" placeholder="API Keys"></div>
+<div class="field full"><label>Description</label><input id="setDescription" placeholder="Purpose of this setting"></div>
+<div class="field full"><label>Value</label><input id="setValue" type="password" placeholder="Value"></div>
+<div class="field"><label>Secret</label><select id="setSecret"><option value="true">Yes — encrypt</option><option value="false">No</option></select></div>
+</div>
+<div style="margin-top:12px"><button onclick="saveSetting()">Save setting</button></div>
+</section>
+<section class="card section"><h2>Common directories</h2><div class="muted">These are stored as normal settings and can be consumed by module/tool installers.</div>
+<div class="form" style="margin-top:12px">
+<div class="field"><label>Data directory</label><input id="dirData"></div>
+<div class="field"><label>Modules directory</label><input id="dirModules"></div>
+<div class="field"><label>Evidence directory</label><input id="dirEvidence"></div>
+<div class="field"><label>Reports directory</label><input id="dirReports"></div>
+<div class="field"><label>Tools directory</label><input id="dirTools"></div>
+<div class="field"><label>Runtimes directory</label><input id="dirRuntimes"></div>
+</div><div style="margin-top:12px"><button onclick="saveDirectories()">Save directories</button></div></section>
+<section class="card section"><div class="toolbar"><div><h2>Configured settings</h2><div class="muted">Secret values are intentionally hidden.</div></div><button onclick="refreshSettings()">Refresh</button></div><div id="settingsRows"></div></section>
+</section>
 </main>
 <script>
-async function api(path){const r=await fetch(path);if(!r.ok)throw new Error(await r.text());return r.json()}
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function refreshAll(){
- try{
-  const [health,mods,jobs]=await Promise.all([api('/api/health'),api('/api/modules'),api('/api/jobs')]);
-  document.querySelector('#status').textContent=health.status.toUpperCase();
-  document.querySelector('#version').textContent='v'+health.version;
-  document.querySelector('#modules').textContent=mods.length;
-  const history=jobs.history||[];
-  document.querySelector('#jobs').textContent=history.length+(jobs.active?.length||0);
-  document.querySelector('#moduleRows').innerHTML=mods.map(m=>'<tr><td>'+esc(m.id)+'</td><td><span class="pill">'+esc(m.category)+'</span></td><td>'+esc(m.runtime)+'</td><td>'+esc(m.networkBehavior)+'</td><td class="'+(m.valid?'ok':'bad')+'">'+(m.valid?'VALID':'INVALID')+'</td></tr>').join('')||'<tr><td colspan="5">No modules found.</td></tr>';
-  document.querySelector('#jobRows').innerHTML=history.slice(0,20).map(j=>'<tr><td>'+esc(j.moduleId)+'</td><td>'+esc(j.target)+'</td><td>'+esc(j.state)+'</td><td>'+esc(new Date(j.createdAt).toLocaleString())+'</td></tr>').join('')||'<tr><td colspan="4">No jobs yet.</td></tr>';
- }catch(e){document.querySelector('#status').textContent='OFFLINE';document.querySelector('#status').className='metric bad'}
-}
-setInterval(()=>document.querySelector('#clock').textContent=new Date().toLocaleTimeString(),1000);refreshAll();
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(path,opt={}){const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opt});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json()}
+function showPage(id,button){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));button.classList.add('active');if(id==='settings')refreshSettings();if(id==='modules')refreshModules();if(id==='engagements')refreshEngagements();if(id==='findings')refreshFindings();if(id==='jobs')loadJobSelectors()}
+async function refreshAll(){try{const [h,m,j,f]=await Promise.all([api('/api/health'),api('/api/modules'),api('/api/jobs'),api('/api/findings')]);$('status').textContent=h.status.toUpperCase();$('version').textContent='v'+h.version;$('modulesCount').textContent=m.length;$('jobsCount').textContent=(j.history||[]).length;$('findingsCount').textContent=f.length;$('jobRows').innerHTML=(j.history||[]).slice(0,20).map(x=>'<tr><td>'+esc(x.moduleId)+'</td><td>'+esc(x.target)+'</td><td>'+esc(x.state)+'</td><td>'+esc(new Date(x.createdAt).toLocaleString())+'</td></tr>').join('')||'<tr><td colspan="4">No jobs yet.</td></tr>'}catch(e){$('status').textContent='OFFLINE';$('status').className='metric bad'}}
+async function refreshModules(){try{const m=await api('/api/modules');$('moduleRows').innerHTML=m.map(x=>'<tr><td>'+esc(x.id)+'</td><td><span class="pill">'+esc(x.category)+'</span></td><td>'+esc(x.runtime)+'</td><td>'+esc(x.networkBehavior)+'</td><td class="'+(x.valid?'ok':'bad')+'">'+(x.valid?'VALID':'INVALID')+'</td></tr>').join('')||'<tr><td colspan="5">No modules found.</td></tr>';$('jobModule').innerHTML=m.filter(x=>x.valid).map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' ('+esc(x.id)+')</option>').join('')}catch(e){$('moduleRows').innerHTML='<tr><td colspan="5">'+esc(e)+'</td></tr>'}}
+async function refreshEngagements(){const e=await api('/api/engagements');$('engRows').innerHTML=e.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.id)+'</td><td>'+esc(JSON.stringify(x.targets))+'</td><td>'+esc(x.expiresAt||'never')+'</td></tr>').join('')||'<tr><td colspan="4">No engagements.</td></tr>';$('jobEngagement').innerHTML=e.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('')}
+async function refreshFindings(){const f=await api('/api/findings');$('findingRows').innerHTML=f.map(x=>'<tr><td>'+esc(x.severity)+'</td><td>'+esc(x.title)+'</td><td>'+esc(x.asset||'')+'</td><td>'+esc(x.description)+'</td></tr>').join('')||'<tr><td colspan="4">No findings.</td></tr>'}
+async function loadJobSelectors(){await Promise.all([refreshModules(),refreshEngagements()])}
+async function createEngagement(){const targets=$('engTargets').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(value=>({value,excluded:false}));const excluded=$('engExcludes').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(value=>({value,excluded:true}));try{await api('/api/engagements',{method:'POST',body:JSON.stringify({name:$('engName').value,targets:[...targets,...excluded],expiresAt:$('engExpires').value?new Date($('engExpires').value).toISOString():null})});$('engName').value='';$('engTargets').value='';$('engExcludes').value='';refreshEngagements();alert('Engagement created.')}catch(e){alert(e)}}
+async function queueJob(){try{const r=await api('/api/jobs',{method:'POST',body:JSON.stringify({moduleId:$('jobModule').value,engagementId:$('jobEngagement').value,target:$('jobTarget').value,confirmed:$('jobConfirm').value==='true'})});$('jobResult').textContent=JSON.stringify(r,null,2);refreshAll()}catch(e){$('jobResult').textContent=e.message}}
+async function inspectRepo(){try{$('repoResult').textContent=JSON.stringify(await api('/api/modules/inspect-github',{method:'POST',body:JSON.stringify({repositoryUrl:$('repoUrl').value})}),null,2)}catch(e){$('repoResult').textContent=e.message}}
+async function importRepo(){try{$('repoResult').textContent=JSON.stringify(await api('/api/modules/import-github',{method:'POST',body:JSON.stringify({repositoryUrl:$('repoUrl').value,revision:$('repoRevision').value||null})}),null,2);refreshModules()}catch(e){$('repoResult').textContent=e.message}}
+async function refreshSettings(){try{const s=await api('/api/settings');$('settingsRows').innerHTML=s.map(x=>'<div class="setting"><div><strong>'+esc(x.key)+'</strong><div class="muted">'+esc(x.category)+' · '+esc(x.description)+'</div></div><div>'+ (x.isSecret?'<span class="warn">Configured secret (hidden)</span>':esc(x.value||''))+'</div><button class="danger" onclick="deleteSetting('+JSON.stringify(x.key)+')">Delete</button></div>').join('')||'<div class="muted" style="padding-top:12px">No custom settings configured.</div>';const d=await api('/api/settings/directories');$('dirData').value=d.data;$('dirModules').value=d.modules;$('dirEvidence').value=d.evidence;$('dirReports').value=d.reports;$('dirTools').value=d.tools;$('dirRuntimes').value=d.runtimes}catch(e){$('settingsRows').textContent=e.message}}
+async function saveSetting(){try{await api('/api/settings',{method:'PUT',body:JSON.stringify({key:$('setKey').value,category:$('setCategory').value||'General',value:$('setValue').value,isSecret:$('setSecret').value==='true',description:$('setDescription').value})});$('setValue').value='';refreshSettings()}catch(e){alert(e)}}
+async function deleteSetting(key){if(!confirm('Delete setting '+key+'?'))return;await api('/api/settings/'+encodeURIComponent(key),{method:'DELETE'});refreshSettings()}
+async function saveDirectories(){const vals=[['directories.data',$('dirData').value],['directories.modules',$('dirModules').value],['directories.evidence',$('dirEvidence').value],['directories.reports',$('dirReports').value],['directories.tools',$('dirTools').value],['directories.runtimes',$('dirRuntimes').value]];for(const [key,value] of vals)if(value)await api('/api/settings',{method:'PUT',body:JSON.stringify({key,category:'Directories',value,isSecret:false,description:'Application directory'})});refreshSettings();alert('Directory settings saved.')}
+setInterval(()=>$('clock').textContent=new Date().toLocaleTimeString(),1000);refreshAll();
 </script>
 </body>
 </html>
