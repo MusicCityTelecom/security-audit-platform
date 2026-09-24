@@ -22,8 +22,10 @@ CREATE TABLE IF NOT EXISTS scope_targets (engagement_id TEXT NOT NULL, value TEX
 CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, module_id TEXT NOT NULL, engagement_id TEXT NULL, target TEXT NOT NULL, state INTEGER NOT NULL, created_at TEXT NOT NULL, started_at TEXT NULL, finished_at TEXT NULL, exit_code INTEGER NULL, error TEXT NULL);
 CREATE TABLE IF NOT EXISTS execution_evidence (job_id TEXT PRIMARY KEY, stdout TEXT NOT NULL, stderr TEXT NOT NULL, collected_at TEXT NOT NULL, sha256 TEXT NOT NULL, FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS findings (id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, severity INTEGER NOT NULL, asset TEXT NULL, remediation TEXT NULL, evidence_ids TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, category TEXT NOT NULL, value TEXT NOT NULL, is_secret INTEGER NOT NULL DEFAULT 0, description TEXT NULL, updated_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_jobs_created_at ON jobs(created_at);
-CREATE INDEX IF NOT EXISTS ix_findings_created_at ON findings(created_at);";
+CREATE INDEX IF NOT EXISTS ix_findings_created_at ON findings(created_at);
+CREATE INDEX IF NOT EXISTS ix_settings_category ON settings(category);";
         cmd.ExecuteNonQuery();
     }
     public void SaveJob(Job job)
