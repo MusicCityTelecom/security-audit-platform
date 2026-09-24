@@ -1,0 +1,28 @@
+# Build output
+**/bin/
+**/obj/
+.vs/
+.idea/
+*.user
+*.suo
+
+# Test output
+TestResults/
+coverage/
+
+# Local application data
+.local/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Secrets
+*.pfx
+*.p12
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
