@@ -33,12 +33,23 @@ public sealed class ToolRegistry
         try
         {
             var configured = tool.PathSettingKey is null ? null : _settings.GetValue(tool.PathSettingKey);
-            var resolved = Resolve(configured, tool.Executable);
+            var resolved = Resolve(configured, tool.Executable); if (tool.Runtime.Equals("wsl", StringComparison.OrdinalIgnoreCase) && resolved is null) resolved = tool.Executable;
             if (resolved is null) return new(tool, false, null, null, "Executable was not found.");
-            var psi = new System.Diagnostics.ProcessStartInfo(resolved, tool.VersionArgument ?? "--version")
+            var psi = new System.Diagnostics.ProcessStartInfo
             {
+                FileName = tool.Runtime.Equals("wsl", StringComparison.OrdinalIgnoreCase) ? "wsl.exe" : resolved,
                 RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true
             };
+            if (tool.Runtime.Equals("wsl", StringComparison.OrdinalIgnoreCase))
+            {
+                psi.ArgumentList.Add("--");
+                psi.ArgumentList.Add(resolved);
+                if (!string.IsNullOrWhiteSpace(tool.VersionArgument)) foreach (var arg in tool.VersionArgument.Split(' ', StringSplitOptions.RemoveEmptyEntries)) psi.ArgumentList.Add(arg);
+            }
+            else if (!string.IsNullOrWhiteSpace(tool.VersionArgument))
+            {
+                foreach (var arg in tool.VersionArgument.Split(' ', StringSplitOptions.RemoveEmptyEntries)) psi.ArgumentList.Add(arg);
+            }
             using var process = System.Diagnostics.Process.Start(psi);
             if (process is null) return new(tool, false, resolved, null, "Unable to start process.");
             process.WaitForExit(5000);
