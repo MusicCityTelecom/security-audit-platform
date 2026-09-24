@@ -1,0 +1,35 @@
+schema_version: 1
+id: official.network.hping3
+name: hping3
+version: 0.1.0
+category: Network
+runtime: wsl
+entrypoint: hping3
+capabilities:
+  - network
+privileges:
+  - network
+requires:
+  tools:
+    - hping3
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: hping3
+  arguments:
+    - "-c"
+    - "1"
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/antirez/hping
+  ref: main
+evidence:
+  - stdout
+  - stderr
