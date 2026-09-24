@@ -1,0 +1,34 @@
+schema_version: 1
+id: official.web.feroxbuster
+name: Feroxbuster
+version: 0.1.0
+category: Web
+runtime: wsl
+entrypoint: feroxbuster
+capabilities:
+  - web
+privileges:
+  - network
+requires:
+  tools:
+    - feroxbuster
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: feroxbuster
+  arguments:
+    - "-u"
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/epi052/feroxbuster
+  ref: main
+evidence:
+  - stdout
+  - stderr
