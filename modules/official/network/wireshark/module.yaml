@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.network.wireshark
+name: Wireshark/tshark
+version: 0.1.0
+category: Network
+runtime: windows
+entrypoint: tshark.exe
+capabilities:
+  - network
+privileges:
+  - network
+requires:
+  tools:
+    - tshark.exe
+  hardware: []
+  runtimes:
+    - windows
+network:
+  behavior: active
+execution:
+  executable: tshark.exe
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/wireshark/wireshark
+  ref: main
+evidence:
+  - stdout
+  - stderr
