@@ -19,6 +19,13 @@ requires:
     - wsl2
 network:
   behavior: active
+execution:
+  executable: nmap
+  arguments:
+    - "{target}"
+    - "-oX"
+    - "-"
+  timeout_seconds: 3600
 license:
   spdx: LicenseRef-NPSL-0.95
 source:
