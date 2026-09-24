@@ -1,1 +1,40 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Security Audit Platform</title><style>body{font-family:system-ui,sans-serif;margin:0;background:#0b1020;color:#e8ecf7}header{padding:24px 32px;border-bottom:1px solid #29324a}main{padding:32px;max-width:1100px;margin:auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.card{background:#141b2d;border:1px solid #29324a;border-radius:12px;padding:20px}.muted{color:#9ba7c0}</style></head><body><header><strong>Security Audit Platform</strong><span class="muted"> · local operator console</span></header><main><div class="grid"><section class="card"><div class="muted">Engine</div><h2 id="status">Checking…</h2><div id="utc" class="muted"></div></section><section class="card"><div class="muted">Execution</div><h2>Windows + WSL2</h2><div class="muted">Provider abstraction active.</div></section><section class="card"><div class="muted">Modules</div><h2>Manifest v1</h2><div class="muted">Validated before installation.</div></section></div><section class="card" style="margin-top:16px"><h2>Platform foundation</h2><p>Scope-bound assessments, module metadata, evidence, findings, jobs, and isolated execution are first-class platform services.</p></section></main><script>fetch('/api/health').then(r=>r.json()).then(x=>{document.querySelector('#status').textContent=x.status.toUpperCase();document.querySelector('#utc').textContent=x.utc}).catch(()=>document.querySelector('#status').textContent='OFFLINE');</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Security Audit Platform</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0a0f1c;color:#e9eef8}header{height:64px;padding:0 24px;display:flex;align-items:center;border-bottom:1px solid #263047;background:#0d1424;position:sticky;top:0;z-index:2}header strong{font-size:18px}header span{margin-left:10px;color:#7f8ba6}main{max-width:1400px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:#111a2b;border:1px solid #263047;border-radius:12px;padding:18px}.metric{font-size:30px;font-weight:750;margin-top:5px}.muted{color:#8995ae;font-size:13px}.section{margin-top:18px}.toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between}.table{width:100%;border-collapse:collapse;margin-top:12px}.table th,.table td{text-align:left;padding:10px 8px;border-top:1px solid #263047;font-size:13px}.pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#1b2740;font-size:12px}.ok{color:#75d69a}.warn{color:#e5c477}.bad{color:#e07a7a}button{background:#1a6cff;border:0;border-radius:7px;color:#fff;padding:8px 12px;cursor:pointer}button:hover{filter:brightness(1.12)}@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.grid{grid-template-columns:1fr}main{padding:14px}}
+</style>
+</head>
+<body>
+<header><strong>Security Audit Platform</strong><span>local operator console</span><div style="margin-left:auto" class="muted" id="clock"></div></header>
+<main>
+<div class="grid">
+<section class="card"><div class="muted">Engine</div><div class="metric ok" id="status">…</div><div class="muted" id="version"></div></section>
+<section class="card"><div class="muted">Installed modules</div><div class="metric" id="modules">…</div><div class="muted">manifest registry</div></section>
+<section class="card"><div class="muted">Jobs</div><div class="metric" id="jobs">…</div><div class="muted">queued / running / history</div></section>
+<section class="card"><div class="muted">Execution</div><div class="metric">2</div><div class="muted">Windows + WSL2 providers</div></section>
+</div>
+<section class="card section"><div class="toolbar"><div><h2 style="margin:0">Modules</h2><div class="muted">Validated module definitions currently visible to the local registry.</div></div><button onclick="refreshAll()">Refresh</button></div><table class="table"><thead><tr><th>ID</th><th>Category</th><th>Runtime</th><th>Network</th><th>State</th></tr></thead><tbody id="moduleRows"><tr><td colspan="5">Loading…</td></tr></tbody></table></section>
+<section class="card section"><h2 style="margin:0">Recent jobs</h2><div class="muted">Execution history and evidence are retained locally.</div><table class="table"><thead><tr><th>Module</th><th>Target</th><th>State</th><th>Created</th></tr></thead><tbody id="jobRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></section>
+</main>
+<script>
+async function api(path){const r=await fetch(path);if(!r.ok)throw new Error(await r.text());return r.json()}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function refreshAll(){
+ try{
+  const [health,mods,jobs]=await Promise.all([api('/api/health'),api('/api/modules'),api('/api/jobs')]);
+  document.querySelector('#status').textContent=health.status.toUpperCase();
+  document.querySelector('#version').textContent='v'+health.version;
+  document.querySelector('#modules').textContent=mods.length;
+  const history=jobs.history||[];
+  document.querySelector('#jobs').textContent=history.length+(jobs.active?.length||0);
+  document.querySelector('#moduleRows').innerHTML=mods.map(m=>'<tr><td>'+esc(m.id)+'</td><td><span class="pill">'+esc(m.category)+'</span></td><td>'+esc(m.runtime)+'</td><td>'+esc(m.networkBehavior)+'</td><td class="'+(m.valid?'ok':'bad')+'">'+(m.valid?'VALID':'INVALID')+'</td></tr>').join('')||'<tr><td colspan="5">No modules found.</td></tr>';
+  document.querySelector('#jobRows').innerHTML=history.slice(0,20).map(j=>'<tr><td>'+esc(j.moduleId)+'</td><td>'+esc(j.target)+'</td><td>'+esc(j.state)+'</td><td>'+esc(new Date(j.createdAt).toLocaleString())+'</td></tr>').join('')||'<tr><td colspan="4">No jobs yet.</td></tr>';
+ }catch(e){document.querySelector('#status').textContent='OFFLINE';document.querySelector('#status').className='metric bad'}
+}
+setInterval(()=>document.querySelector('#clock').textContent=new Date().toLocaleTimeString(),1000);refreshAll();
+</script>
+</body>
+</html>
