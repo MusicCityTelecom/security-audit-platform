@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.firmware.firmware-mod-kit
+name: Firmware Mod Kit
+version: 0.1.0
+category: Firmware
+runtime: wsl
+entrypoint: extract-firmware.sh
+capabilities:
+  - firmware
+privileges:
+  - network
+requires:
+  tools:
+    - extract-firmware.sh
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: extract-firmware.sh
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/rampageX/firmware-mod-kit
+  ref: main
+evidence:
+  - stdout
+  - stderr
