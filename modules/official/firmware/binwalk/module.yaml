@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.firmware.binwalk
+name: Binwalk
+version: 0.1.0
+category: Firmware
+runtime: wsl
+entrypoint: binwalk
+capabilities:
+  - firmware
+privileges:
+  - network
+requires:
+  tools:
+    - binwalk
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: binwalk
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/ReFirmLabs/binwalk
+  ref: main
+evidence:
+  - stdout
+  - stderr
