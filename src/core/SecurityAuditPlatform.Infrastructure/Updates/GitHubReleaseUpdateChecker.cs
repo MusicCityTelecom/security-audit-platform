@@ -24,4 +24,12 @@ public sealed class GitHubReleaseUpdateChecker
         var available = latest is not null && current is not null ? latest > current : !string.Equals(tag, currentVersion, StringComparison.OrdinalIgnoreCase);
         return new(available,currentVersion,tag,url,published);
     }
+    private static Version? ParseVersion(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var normalized = value.Trim().TrimStart('v', 'V');
+        var dash = normalized.IndexOf('-');
+        if (dash >= 0) normalized = normalized[..dash];
+        return Version.TryParse(normalized, out var version) ? version : null;
+    }
 }
