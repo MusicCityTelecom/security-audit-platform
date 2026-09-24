@@ -1,44 +1,46 @@
-# Security Audit Platform
+# Windows Security Audit Platform
 
-A modular Windows-first security assessment and penetration-testing platform integrating native Windows tooling, WSL2/Linux security tooling, wireless assessment capabilities, evidence collection, reporting, and extensible third-party modules.
+A Windows-first, modular security assessment platform designed to orchestrate Windows-native and Linux/WSL2 security tooling from a unified operator experience.
 
-> **Authorization:** This platform is intended for authorized security assessments, defensive validation, laboratories, and systems owned or explicitly authorized for testing.
+## Current foundation
 
-## Project goals
+The repository now contains a .NET 10 solution with:
 
-- Windows-native desktop experience with a web-based operator UI
-- Integrated PowerShell, CMD, Bash/WSL, Python, and tool terminals
-- WSL2-backed Linux security tooling where Windows cannot provide equivalent capabilities
-- Modular tool/plugin architecture so users can add or customize modules
-- Easy integration of compatible open-source security projects from GitHub
-- Tool/runtime/license metadata and SBOM support from the beginning
-- Engagement scoping, evidence collection, findings, and professional reporting
-- Local-first operation with a path to centralized/enterprise deployments
-- Safe-by-default execution controls and explicit authorization scope
+- native WPF desktop shell using WebView2
+- local ASP.NET Core operator/API host
+- YAML module manifest loader and validator
+- filesystem module registry
+- declarative command execution templates
+- Windows and WSL2 execution providers using argument-safe process invocation
+- engagement and exact-target authorization enforcement
+- background job scheduler with cancellation/timeout handling
+- persistent SQLite job history
+- persistent stdout/stderr evidence with SHA-256 integrity digests
+- GitHub repository inspection and safe module import
+- explicit WSL2 bootstrap script
+- initial official module catalog for Nmap, Nuclei, Metasploit, Greenbone, Aircrack-ng, Wifite2, Binwalk, Hashcat, BloodHound, Impacket, Masscan, Wireshark/tshark, and PowerShell reconnaissance
 
-## Planned architecture
+The project targets .NET 10, the current LTS release.
 
-```text
+## Architecture
+
 Windows Desktop
-  ├─ Web UI
-  ├─ Assessment Engine
-  ├─ Job Scheduler
-  ├─ Scope/Authorization Engine
-  ├─ Evidence & Findings Store
-  ├─ Tool/Module Manager
-  ├─ PowerShell/CMD Terminal
-  └─ WSL2 Runtime Manager
-       └─ Linux Security Environment
-```
+├── WebView2 operator UI
+├── ASP.NET Core local API
+├── Engagement / scope engine
+├── Job scheduler
+├── Module registry
+├── Evidence / findings store
+└── Execution providers
+    ├── Windows process
+    └── WSL2
 
-## Repository status
+The next major layers are structured result parsers, asset inventory, richer CIDR/domain scope rules, reporting, terminal sessions, runtime/tool installers, isolated containers/VMs, remote agents, centralized PostgreSQL/object storage, and release/update signing.
 
-The repository is intentionally starting as an architecture-first foundation. Core contracts, module manifests, tool adapters, execution boundaries, and update/install mechanisms will be established before large tool integrations are added.
+## Security boundary
 
-## Security model
+The platform is an orchestrator rather than a replacement for every upstream security project. Modules declare runtime, privileges, dependencies, network impact, execution templates, evidence, and license metadata.
 
-The platform must preserve clear authorization boundaries. Modules should declare capabilities, runtime requirements, required privileges, network impact, and whether they are passive, active, disruptive, or destructive. High-impact operations should require explicit operator confirmation and applicable engagement scope.
+Jobs require an active engagement and an explicitly authorized target. Disruptive/destructive module classes require explicit confirmation. GitHub import is inspection-first and never executes repository install scripts or CI workflows.
 
-## License
-
-Project licensing and third-party component licensing will be finalized as the architecture and dependency model are established. Third-party projects must retain their original licenses and notices where required.
+Third-party software remains subject to its own licenses. License metadata in the catalog is deliberately conservative where the exact upstream terms have not yet been verified for redistribution.
