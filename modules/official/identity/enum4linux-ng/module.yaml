@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.identity.enum4linux-ng
+name: enum4linux-ng
+version: 0.1.0
+category: Identity
+runtime: wsl
+entrypoint: enum4linux-ng
+capabilities:
+  - identity
+privileges:
+  - network
+requires:
+  tools:
+    - enum4linux-ng
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: enum4linux-ng
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/cddmp/enum4linux-ng
+  ref: main
+evidence:
+  - stdout
+  - stderr
