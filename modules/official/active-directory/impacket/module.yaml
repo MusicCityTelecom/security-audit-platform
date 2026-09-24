@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.active-directory.impacket
+name: Impacket
+version: 0.1.0
+category: ActiveDirectory
+runtime: wsl
+entrypoint: python3
+capabilities:
+  - active-directory
+privileges:
+  - network
+requires:
+  tools:
+    - python3
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: passive
+execution:
+  executable: python3
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/fortra/impacket
+  ref: main
+evidence:
+  - stdout
+  - stderr
