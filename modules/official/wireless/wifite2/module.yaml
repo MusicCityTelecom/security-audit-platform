@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.wireless.wifite2
+name: Wifite2
+version: 0.1.0
+category: Wireless
+runtime: wsl
+entrypoint: wifite
+capabilities:
+  - wireless
+privileges:
+  - network
+requires:
+  tools:
+    - wifite
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: wifite
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/derv82/wifite2
+  ref: main
+evidence:
+  - stdout
+  - stderr
