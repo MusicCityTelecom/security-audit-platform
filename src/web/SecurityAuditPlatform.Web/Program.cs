@@ -85,6 +85,17 @@ app.MapPut("/api/settings", (SecurityAuditPlatform.Infrastructure.Settings.SetSe
 app.MapDelete("/api/settings/{key}", (string key, SecurityAuditPlatform.Infrastructure.Settings.SettingsService settings) =>
     settings.Delete(key) ? Results.NoContent() : Results.NotFound());
 
+app.MapPost("/api/settings/apply-directories", (SecurityAuditPlatform.Infrastructure.Settings.SettingsService settings, IModuleRegistry registry, AuditLogService audit) =>
+{
+    var modules = settings.GetValue("directories.modules");
+    if (!string.IsNullOrWhiteSpace(modules))
+    {
+        try { registry.SetRootDirectory(modules); audit.Write("settings.apply-directories","success",details:new { ModulesDirectory=modules }); }
+        catch (Exception ex) { audit.Write("settings.apply-directories","failure",details:new { Error=ex.Message }); return Results.BadRequest(ex.Message); }
+    }
+    return Results.Ok(new { modulesDirectory = registry.RootDirectory });
+});
+
 app.MapGet("/api/settings/directories", (SecurityAuditPlatform.Infrastructure.Settings.SettingsService settings) =>
     Results.Ok(new {
         data = settings.GetValue("directories.data") ?? "",
