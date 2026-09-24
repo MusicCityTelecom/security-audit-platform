@@ -1,0 +1,35 @@
+schema_version: 1
+id: official.web.sqlmap
+name: sqlmap
+version: 0.1.0
+category: Web
+runtime: wsl
+entrypoint: sqlmap
+capabilities:
+  - web
+privileges:
+  - network
+requires:
+  tools:
+    - sqlmap
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: sqlmap
+  arguments:
+    - "-u"
+    - "{target}"
+    - "--batch"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/sqlmapproject/sqlmap
+  ref: main
+evidence:
+  - stdout
+  - stderr
