@@ -1,3 +1,5 @@
+using SecurityAuditPlatform.Core.Modules;
+
 namespace SecurityAuditPlatform.Core.Execution;
 
 public sealed record ExecutionRequest(
