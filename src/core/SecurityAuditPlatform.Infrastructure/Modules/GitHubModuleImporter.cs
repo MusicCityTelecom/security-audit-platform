@@ -41,7 +41,7 @@ public sealed class GitHubModuleImporter
         {
             foreach (var entry in archive.Entries)
             {
-                var normalized = entry.FullName.Replace('\', '/');
+                var normalized = entry.FullName.Replace('\\', '/');
                 if (normalized.StartsWith('/') || normalized.Split('/').Any(x => x == ".."))
                     throw new InvalidDataException($"Unsafe archive path: {entry.FullName}");
                 var destination = Path.GetFullPath(Path.Combine(staging, normalized));
