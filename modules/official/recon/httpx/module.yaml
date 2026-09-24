@@ -1,0 +1,35 @@
+schema_version: 1
+id: official.recon.httpx
+name: httpx
+version: 0.1.0
+category: Recon
+runtime: wsl
+entrypoint: httpx
+capabilities:
+  - recon
+privileges:
+  - network
+requires:
+  tools:
+    - httpx
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: httpx
+  arguments:
+    - "-u"
+    - "{target}"
+    - "-json"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/projectdiscovery/httpx
+  ref: main
+evidence:
+  - stdout
+  - stderr
