@@ -9,6 +9,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\\..\\src\\core\\SecurityAuditPlatform.Core\\SecurityAuditPlatform.Core.csproj" />
+    <ProjectReference Include="../../src/core/SecurityAuditPlatform.Core/SecurityAuditPlatform.Core.csproj" />
   </ItemGroup>
 </Project>
