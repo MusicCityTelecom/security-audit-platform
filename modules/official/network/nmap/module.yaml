@@ -1,0 +1,30 @@
+schema_version: 1
+id: official.network.nmap
+name: Nmap
+version: 0.1.0
+category: network
+runtime: wsl
+entrypoint: nmap
+capabilities:
+  - host-discovery
+  - port-scanning
+  - service-enumeration
+privileges:
+  - network
+requires:
+  tools:
+    - nmap
+  hardware: []
+  runtimes:
+    - wsl2
+network:
+  behavior: active
+license:
+  spdx: LicenseRef-NPSL-0.95
+source:
+  type: upstream
+  repository: https://github.com/nmap/nmap
+  ref: master
+evidence:
+  - stdout
+  - stderr
