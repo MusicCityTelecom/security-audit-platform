@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>SecurityAuditPlatform.Infrastructure</RootNamespace>
+    <AssemblyName>SecurityAuditPlatform.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\\SecurityAuditPlatform.Core\\SecurityAuditPlatform.Core.csproj" />
+  </ItemGroup>
+</Project>
