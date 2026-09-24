@@ -12,6 +12,7 @@ using SecurityAuditPlatform.Infrastructure.Audit;
 using SecurityAuditPlatform.Infrastructure.Updates;
 using SecurityAuditPlatform.Infrastructure.Terminal;
 using SecurityAuditPlatform.Infrastructure.Runtimes;
+using SecurityAuditPlatform.Infrastructure.Assets;
 
 var builder = WebApplication.CreateBuilder(args);
 var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, "data");
@@ -24,7 +25,8 @@ builder.Services.AddSingleton<ProcessExecutionProvider>();
 builder.Services.AddSingleton<IExecutionProvider>(sp => sp.GetRequiredService<ProcessExecutionProvider>());
 builder.Services.AddSingleton<WslExecutionProvider>();
 builder.Services.AddSingleton<IExecutionProvider>(sp => sp.GetRequiredService<WslExecutionProvider>());
-builder.Services.AddSingleton<PlatformDatabase>(_ => new PlatformDatabase(Path.Combine(dataDirectory, "platform.db")));
+builder.Services.AddSingleton<PlatformDatabase>(_ => { var db = new PlatformDatabase(Path.Combine(dataDirectory, "platform.db")); db.InitializeAssetSchema(); return db; });
+builder.Services.AddSingleton<AssetInventoryService>();
 builder.Services.AddSingleton<EngagementService>();
 builder.Services.AddSingleton<ExecutionEvidenceStore>();
 builder.Services.AddSingleton<SecurityAuditPlatform.Infrastructure.Settings.SettingsService>();
@@ -124,6 +126,20 @@ app.MapDelete("/api/terminals/{id:guid}", (Guid id, TerminalSessionManager termi
 
 app.MapGet("/api/wsl", (WslRuntimeService wsl) => Results.Ok(new { status=wsl.Status(), distributions=wsl.ListDistributions() }));
 
+app.MapGet("/api/assets", (AssetInventoryService assets) => Results.Ok(assets.List()));
+app.MapPost("/api/assets", (CreateAssetRequest request, AssetInventoryService assets) =>
+{
+    try { return Results.Ok(assets.Upsert(request.ToObservation())); }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+});
+app.MapPost("/api/assets/import", (ImportAssetsRequest request, AssetInventoryService assets) =>
+{
+    try { return Results.Ok(new { imported = assets.Import(request.Assets.Select(x => x.ToObservation())) }); }
+    catch (ArgumentException ex) { return Results.BadRequest(ex.Message); }
+});
+app.MapPatch("/api/assets/{id:guid}/status", (Guid id, UpdateAssetStatusRequest request, AssetInventoryService assets) =>
+    assets.SetStatus(id, request.Status) ? Results.NoContent() : Results.NotFound());
+
 app.MapGet("/api/tools", (ToolRegistry tools) => Results.Ok(tools.CheckAll()));
 app.MapPost("/api/tools/check", (ToolRegistry tools) => Results.Ok(tools.CheckAll()));
 app.MapGet("/api/audit", (AuditLogService audit) => Results.Ok(audit.List()));
@@ -176,6 +192,12 @@ public sealed record CreateEngagementRequest(string Name, List<ScopeTargetReques
 public sealed record ScopeTargetRequest(string Value, bool Excluded = false);
 public sealed record CreateJobRequest(string ModuleId, Guid EngagementId, string Target, bool Confirmed = false);
 public sealed record ParseOutputRequest(string Output);
+public sealed record CreateAssetRequest(string Value, SecurityAuditPlatform.Core.Assets.AssetKind Kind, string? Hostname = null, string? OperatingSystem = null, string? Vendor = null, string? MacAddress = null, int? Port = null, string? Protocol = null, string? Service = null, string? Version = null, string? Source = null, Dictionary<string,string>? Attributes = null)
+{
+    public SecurityAuditPlatform.Core.Assets.AssetObservation ToObservation() => new(Value, Kind, Hostname, OperatingSystem, Vendor, MacAddress, Port, Protocol, Service, Version, Source, Attributes);
+}
+public sealed record ImportAssetsRequest(List<CreateAssetRequest> Assets);
+public sealed record UpdateAssetStatusRequest(SecurityAuditPlatform.Core.Assets.AssetStatus Status);
 public sealed record CreateTerminalRequest(SecurityAuditPlatform.Infrastructure.Terminal.TerminalKind Kind, string? WorkingDirectory = null);
 public sealed record TerminalInputRequest(string Input);
 public sealed record CreateFindingRequest(string Title, string Description, SecurityAuditPlatform.Core.Findings.FindingSeverity Severity, string? Asset = null, string? Remediation = null, List<Guid>? EvidenceIds = null);
