@@ -19,9 +19,9 @@
 - [x] Job lifecycle/state
 - [x] Cancellation/timeouts
 - [x] Structured stdout/stderr/evidence capture
-- [ ] Interactive PowerShell terminal sessions
-- [ ] Interactive CMD terminal sessions
-- [ ] Interactive Bash/WSL terminal sessions
+- [x] Managed PowerShell terminal sessions
+- [x] Managed CMD terminal sessions
+- [x] Managed Bash/WSL terminal sessions
 
 ## Module ecosystem
 - [x] Module manifest validator
