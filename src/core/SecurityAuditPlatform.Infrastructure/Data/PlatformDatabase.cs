@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS findings (id TEXT PRIMARY KEY, title TEXT NOT NULL, d
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, category TEXT NOT NULL, value TEXT NOT NULL, is_secret INTEGER NOT NULL DEFAULT 0, description TEXT NULL, updated_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_jobs_created_at ON jobs(created_at);
 CREATE INDEX IF NOT EXISTS ix_findings_created_at ON findings(created_at);
-CREATE INDEX IF NOT EXISTS ix_settings_category ON settings(category);";
+CREATE INDEX IF NOT EXISTS ix_settings_category ON settings(category);
+CREATE TABLE IF NOT EXISTS audit_events (id TEXT PRIMARY KEY, timestamp TEXT NOT NULL, action TEXT NOT NULL, actor TEXT NULL, target TEXT NULL, outcome TEXT NOT NULL, details TEXT NULL);
+CREATE INDEX IF NOT EXISTS ix_audit_events_timestamp ON audit_events(timestamp);";
         cmd.ExecuteNonQuery();
     }
     public void SaveJob(Job job)
