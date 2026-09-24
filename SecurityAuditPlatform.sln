@@ -2,29 +2,37 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Core", "src\\core\\SecurityAuditPlatform.Core\\SecurityAuditPlatform.Core.csproj", "{8A0E8A6A-1C9B-4F4C-AE50-111111111111}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Core", "src\core\SecurityAuditPlatform.Core\SecurityAuditPlatform.Core.csproj", "{8A0E8A6A-1C9B-4F4C-AE50-111111111111}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Infrastructure", "src\\core\\SecurityAuditPlatform.Infrastructure\\SecurityAuditPlatform.Infrastructure.csproj", "{8A0E8A6A-1C9B-4F4C-AE50-222222222222}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Infrastructure", "src\core\SecurityAuditPlatform.Infrastructure\SecurityAuditPlatform.Infrastructure.csproj", "{8A0E8A6A-1C9B-4F4C-AE50-222222222222}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Web", "src\\web\\SecurityAuditPlatform.Web\\SecurityAuditPlatform.Web.csproj", "{8A0E8A6A-1C9B-4F4C-AE50-333333333333}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Web", "src\web\SecurityAuditPlatform.Web\SecurityAuditPlatform.Web.csproj", "{8A0E8A6A-301D-4F4C-AE50-333333333333}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Core.Tests", "tests\\SecurityAuditPlatform.Core.Tests\\SecurityAuditPlatform.Core.Tests.csproj", "{8A0E8A6A-1C9B-4F4C-AE50-444444444444}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Desktop", "src\desktop\SecurityAuditPlatform.Desktop\SecurityAuditPlatform.Desktop.csproj", "{8A0E8A6A-401D-4F4C-AE50-444444444444}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityAuditPlatform.Core.Tests", "tests\SecurityAuditPlatform.Core.Tests\SecurityAuditPlatform.Core.Tests.csproj", "{8A0E8A6A-501D-4F4C-AE50-555555555555}"
 EndProject
 Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-333333333333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-333333333333}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-444444444444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A0E8A6A-1C9B-4F4C-AE50-444444444444}.Debug|Any CPU.Build.0 = Debug|Any CPU
-	EndGlobalSection
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+  GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    {8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {8A0E8A6A-1C9B-4F4C-AE50-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
+    {8A0E8A6A-301D-4F4C-AE50-333333333333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {8A0E8A6A-301D-4F4C-AE50-333333333333}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {8A0E8A6A-301D-4F4C-AE50-333333333333}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {8A0E8A6A-301D-4F4C-AE50-333333333333}.Release|Any CPU.Build.0 = Release|Any CPU
+    {8A0E8A6A-401D-4F4C-AE50-444444444444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {8A0E8A6A-401D-4F4C-AE50-444444444444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {8A0E8A6A-401D-4F4C-AE50-444444444444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {8A0E8A6A-401D-4F4C-AE50-444444444444}.Release|Any CPU.Build.0 = Release|Any CPU
+    {8A0E8A6A-501D-4F4C-AE50-555555555555}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {8A0E8A6A-501D-4F4C-AE50-555555555555}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {8A0E8A6A-501D-4F4C-AE50-555555555555}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {8A0E8A6A-501D-4F4C-AE50-555555555555}.Release|Any CPU.Build.0 = Release|Any CPU
+  EndGlobalSection
 EndGlobal
