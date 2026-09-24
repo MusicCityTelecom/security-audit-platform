@@ -13,20 +13,19 @@ public sealed class ModuleManifestYamlStore
 
     public ModuleManifest Deserialize(string yaml)
     {
-        var document = _deserializer.Deserialize<YamlModuleDocument>(yaml)
-            ?? throw new InvalidDataException("Module manifest is empty.");
-
+        var document = _deserializer.Deserialize<YamlModuleDocument>(yaml) ?? throw new InvalidDataException("Module manifest is empty.");
         var requires = document.Requires ?? new YamlRequires();
         var network = document.Network ?? new YamlNetwork();
         var license = document.License ?? new YamlLicense();
         var source = document.Source ?? new YamlSource();
 
-        if (!Enum.TryParse<ModuleCategory>(document.Category ?? "Utility", true, out var category))
-            throw new InvalidDataException($"Unknown module category '{document.Category}'.");
-        if (!Enum.TryParse<ModuleRuntime>(document.Runtime ?? "Windows", true, out var runtime))
-            throw new InvalidDataException($"Unknown module runtime '{document.Runtime}'.");
-        if (!Enum.TryParse<NetworkBehavior>(network.Behavior ?? "Passive", true, out var behavior))
-            throw new InvalidDataException($"Unknown network behavior '{network.Behavior}'.");
+        if (!Enum.TryParse<ModuleCategory>(document.Category ?? "Utility", true, out var category)) throw new InvalidDataException($"Unknown module category '{document.Category}'.");
+        if (!Enum.TryParse<ModuleRuntime>(document.Runtime ?? "Windows", true, out var runtime)) throw new InvalidDataException($"Unknown module runtime '{document.Runtime}'.");
+        if (!Enum.TryParse<NetworkBehavior>(network.Behavior ?? "Passive", true, out var behavior)) throw new InvalidDataException($"Unknown network behavior '{network.Behavior}'.");
+
+        ModuleExecutionDefinition? execution = null;
+        if (document.Execution is not null && !string.IsNullOrWhiteSpace(document.Execution.Executable))
+            execution = new ModuleExecutionDefinition(document.Execution.Executable, document.Execution.Arguments ?? [], document.Execution.TimeoutSeconds);
 
         return new ModuleManifest(
             document.SchemaVersion,
@@ -35,13 +34,11 @@ public sealed class ModuleManifestYamlStore
             document.Version ?? throw new InvalidDataException("Module version is required."),
             category, runtime,
             document.Entrypoint ?? throw new InvalidDataException("Module entrypoint is required."),
-            document.Capabilities ?? [],
-            document.Privileges ?? [],
+            document.Capabilities ?? [], document.Privileges ?? [],
             new ModuleDependency(requires.Tools ?? [], requires.Hardware ?? [], requires.Runtimes ?? []),
-            behavior,
-            new ModuleLicense(license.Spdx ?? "UNKNOWN"),
+            behavior, new ModuleLicense(license.Spdx ?? "UNKNOWN"),
             new ModuleSource(source.Type ?? "local", source.Repository, source.Ref),
-            document.Inputs, document.Outputs, document.Evidence);
+            document.Inputs, document.Outputs, document.Evidence, execution);
     }
 
     private sealed class YamlModuleDocument
@@ -62,10 +59,12 @@ public sealed class ModuleManifestYamlStore
         public Dictionary<string, object?>? Inputs { get; set; }
         public Dictionary<string, object?>? Outputs { get; set; }
         public List<string>? Evidence { get; set; }
+        public YamlExecution? Execution { get; set; }
     }
 
     private sealed class YamlRequires { public List<string>? Tools { get; set; } public List<string>? Hardware { get; set; } public List<string>? Runtimes { get; set; } }
     private sealed class YamlNetwork { public string? Behavior { get; set; } }
     private sealed class YamlLicense { public string? Spdx { get; set; } }
     private sealed class YamlSource { public string? Type { get; set; } public string? Repository { get; set; } public string? Ref { get; set; } }
+    private sealed class YamlExecution { public string? Executable { get; set; } public List<string>? Arguments { get; set; } public int TimeoutSeconds { get; set; } = 1800; }
 }
