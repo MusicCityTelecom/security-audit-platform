@@ -16,11 +16,12 @@ public sealed class JobScheduler : BackgroundService
     private readonly IModuleRegistry _modules;
     private readonly IReadOnlyDictionary<ModuleRuntime, IExecutionProvider> _providers;
     private readonly PlatformDatabase _database;
+    private readonly ExecutionEvidenceStore _evidence;
     private readonly EngagementService _engagements;
 
-    public JobScheduler(IModuleRegistry modules, IEnumerable<IExecutionProvider> providers, PlatformDatabase database, EngagementService engagements)
+    public JobScheduler(IModuleRegistry modules, IEnumerable<IExecutionProvider> providers, PlatformDatabase database, ExecutionEvidenceStore evidence, EngagementService engagements)
     {
-        _modules = modules; _providers = providers.ToDictionary(x => x.Runtime); _database = database; _engagements = engagements;
+        _modules = modules; _providers = providers.ToDictionary(x => x.Runtime); _database = database; _evidence = evidence; _engagements = engagements;
     }
 
     public IReadOnlyList<Job> List() => _jobs.Values.OrderByDescending(x => x.CreatedAt).ToArray();
@@ -49,15 +50,12 @@ public sealed class JobScheduler : BackgroundService
                 if (!_providers.TryGetValue(module.Manifest.Runtime, out var provider))
                     throw new InvalidOperationException($"No execution provider for runtime {module.Manifest.Runtime}.");
 
-                var definition = module.Manifest.Execution ??
-                    new ModuleExecutionDefinition(module.Manifest.Entrypoint, ["{target}"]);
+                var definition = module.Manifest.Execution ?? new ModuleExecutionDefinition(module.Manifest.Entrypoint, ["{target}"]);
                 var args = definition.Arguments.Select(x => x.Replace("{target}", queued.Target, StringComparison.Ordinal)).ToArray();
-                var plan = new ModuleExecutionPlan(module.Manifest.Id, module.Manifest.Runtime, definition.Executable,
-                    args, module.Directory, module.Manifest.NetworkBehavior, false);
-                var result = await provider.ExecuteAsync(new ExecutionRequest(plan.FileName, plan.Arguments, plan.WorkingDirectory,
+                var result = await provider.ExecuteAsync(new ExecutionRequest(definition.Executable, args, module.Directory,
                     Timeout: TimeSpan.FromSeconds(Math.Clamp(definition.TimeoutSeconds, 1, 86400))), stoppingToken);
-                var state = result.Canceled ? JobState.Canceled : result.TimedOut ? JobState.TimedOut :
-                    result.ExitCode == 0 ? JobState.Succeeded : JobState.Failed;
+                _evidence.Save(queued.Id, result.StandardOutput, result.StandardError, result.FinishedAt);
+                var state = result.Canceled ? JobState.Canceled : result.TimedOut ? JobState.TimedOut : result.ExitCode == 0 ? JobState.Succeeded : JobState.Failed;
                 var error = string.IsNullOrWhiteSpace(result.StandardError) ? null : result.StandardError[..Math.Min(result.StandardError.Length, 4000)];
                 var completed = running with { State = state, FinishedAt = result.FinishedAt, ExitCode = result.ExitCode, Error = error };
                 _jobs[completed.Id] = completed; _database.SaveJob(completed);
