@@ -169,6 +169,11 @@ app.MapPost("/api/parsers/nmap", (ParseOutputRequest request, NmapXmlParser pars
 {
     try { return Results.Ok(parser.Parse(request.Output)); } catch (Exception ex) { return Results.BadRequest(ex.Message); }
 });
+app.MapPost("/api/parsers/nmap/assets", (ParseOutputRequest request, NmapXmlParser parser, AssetInventoryService assets) =>
+{
+    try { return Results.Ok(new { imported = assets.Import(parser.ParseAssets(request.Output)) }); }
+    catch (Exception ex) { return Results.BadRequest(ex.Message); }
+});
 app.MapPost("/api/parsers/nuclei", (ParseOutputRequest request, NucleiJsonlParser parser) => Results.Ok(parser.Parse(request.Output)));
 
 app.MapGet("/api/jobs/{id:guid}/evidence", (Guid id, ExecutionEvidenceStore evidence) =>
