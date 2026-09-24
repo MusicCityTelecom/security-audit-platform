@@ -1,0 +1,33 @@
+schema_version: 1
+id: official.network.masscan
+name: Masscan
+version: 0.1.0
+category: Network
+runtime: wsl
+entrypoint: masscan
+capabilities:
+  - network
+privileges:
+  - network
+requires:
+  tools:
+    - masscan
+  hardware: []
+  runtimes:
+    - wsl
+network:
+  behavior: active
+execution:
+  executable: masscan
+  arguments:
+    - "{target}"
+  timeout_seconds: 3600
+license:
+  spdx: UNKNOWN
+source:
+  type: upstream
+  repository: https://github.com/robertdavidgraham/masscan
+  ref: main
+evidence:
+  - stdout
+  - stderr
