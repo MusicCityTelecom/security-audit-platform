@@ -7,4 +7,7 @@
     <ProjectReference Include="../../core/SecurityAuditPlatform.Core/SecurityAuditPlatform.Core.csproj" />
     <ProjectReference Include="../../core/SecurityAuditPlatform.Infrastructure/SecurityAuditPlatform.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="../../../modules/**/*.yaml" LinkBase="modules" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
