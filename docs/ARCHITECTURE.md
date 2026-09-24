@@ -93,3 +93,27 @@ Operator Desktop
                +---- Job Queue
                +---- Web Console
 ```
+
+
+## Operator services
+
+The local operator API now includes:
+
+- encrypted settings/credential storage;
+- tool discovery and health checks;
+- WSL distribution discovery;
+- managed PowerShell/CMD/WSL terminal sessions;
+- operator audit logging;
+- GitHub release update checking;
+- transactional Windows update staging;
+- findings and HTML report generation.
+
+The API is explicitly loopback-only. The desktop shell launches the API on a loopback port and embeds the operator UI through WebView2.
+
+## Configuration model
+
+Settings are key/value records grouped by category. Secrets are encrypted before being stored. Directory and tool-path settings are intentionally generic so new integrations can add configuration without a database migration. Module directories can be applied at runtime; application data migration and evidence/report storage relocation remain future migration work.
+
+## Execution and evidence
+
+Assessment jobs are distinct from terminal sessions. Assessment jobs are scope-bound and produce structured job/evidence records. Terminal sessions are operator consoles and are audited separately. This separation prevents arbitrary terminal commands from being mistaken for scoped assessment jobs while still providing the Windows-first operator workflow.
