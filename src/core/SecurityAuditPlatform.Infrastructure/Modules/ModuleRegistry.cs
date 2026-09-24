@@ -9,11 +9,13 @@ public interface IModuleRegistry
     IReadOnlyList<RegisteredModule> List();
     RegisteredModule? Find(string moduleId);
     void Refresh();
+    string RootDirectory { get; }
+    void SetRootDirectory(string root);
 }
 
 public sealed class FileModuleRegistry : IModuleRegistry
 {
-    private readonly string _root;
+    private string _root;
     private readonly ModuleManifestYamlStore _yaml;
     private readonly ModuleManifestValidator _validator;
     private readonly object _gate = new();
@@ -25,6 +27,14 @@ public sealed class FileModuleRegistry : IModuleRegistry
         _yaml = yaml;
         _validator = validator;
         Refresh();
+    }
+
+    public string RootDirectory { get { lock (_gate) return _root; } }
+
+    public void SetRootDirectory(string root)
+    {
+        if (string.IsNullOrWhiteSpace(root)) throw new ArgumentException("Module root is required.", nameof(root));
+        _root = Path.GetFullPath(root); Directory.CreateDirectory(_root); Refresh();
     }
 
     public IReadOnlyList<RegisteredModule> List() { lock (_gate) return _modules.ToArray(); }
