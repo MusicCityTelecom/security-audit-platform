@@ -4,7 +4,7 @@ name: Example Module
 version: 0.1.0
 category: utility
 runtime: windows
-entrypoint: main.ps1
+entrypoint: example.exe
 capabilities: []
 privileges: []
 requires:
@@ -13,9 +13,16 @@ requires:
   runtimes: []
 network:
   behavior: passive
+execution:
+  executable: example.exe
+  arguments:
+    - "{target}"
+  timeout_seconds: 1800
 inputs: {}
 outputs: {}
-evidence: []
+evidence:
+  - stdout
+  - stderr
 license:
   spdx: MIT
 source:
