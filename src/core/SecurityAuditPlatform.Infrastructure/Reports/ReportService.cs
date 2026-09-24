@@ -22,7 +22,7 @@ public sealed class ReportService
         var jobRows = string.Join("", jobs.Select(j =>
             $"<tr><td>{E(j.ModuleId)}</td><td>{E(j.Target)}</td><td>{E(j.State.ToString())}</td><td>{E(j.CreatedAt.ToString("u"))}</td></tr>"));
 
-        return "<!doctype html><html><head><meta charset="utf-8"><title>" +
+        return "<!doctype html><html><head><meta charset='utf-8'><title>" +
             E(title) +
             "</title><style>body{font-family:Arial,sans-serif;margin:40px;color:#202733}" +
             "table{border-collapse:collapse;width:100%;margin:20px 0}" +
